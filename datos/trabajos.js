@@ -1,0 +1,13 @@
+/* Encargos de la app Trabajos. hab: habilidad · nivel: 1 a 5 (hasta dónde llega su reputación) · horas. Clientes inventados. */
+(function (root) {
+  'use strict';
+  const BB = root.BB, T = (hab, nivel, horas, nombre, en) => ({ hab, nivel, horas, nombre, en });
+  BB.HABILIDADES = { diseno: { nombre: 'Diseño', en: 'Design' }, marketing: { nombre: 'Marketing', en: 'Marketing' }, finanzas: { nombre: 'Finanzas', en: 'Finance' }, negociacion: { nombre: 'Negociación', en: 'Negotiation' } };
+  BB.TRABAJOS = {
+    logoPan: T('diseno', 1, 3, 'Logo para una panadería', 'Logo for a bakery'), tarjeta: T('diseno', 1, 2, 'Tarjetas de presentación', 'Business cards'), menu: T('diseno', 2, 4, 'Menú ilustrado de un café', 'Illustrated café menu'), empaque: T('diseno', 3, 4, 'Empaque de velas', 'Candle packaging'), tiendaWeb: T('diseno', 4, 5, 'Diseño de una tienda web', 'Online shop design'), marca: T('diseno', 5, 5, 'Imagen completa de una marca', 'Full brand identity'),
+    redes: T('marketing', 1, 3, 'Redes de una tiendita', 'Socials for a corner shop'), fotosProd: T('marketing', 1, 2, 'Fotos de producto', 'Product photos'), anuncio: T('marketing', 2, 3, 'Anuncio para un salón', 'Ad for a salon'), campana: T('marketing', 3, 4, 'Campaña de temporada', 'Seasonal campaign'), boletin: T('marketing', 4, 4, 'Boletín de una florería', 'Florist newsletter'), lanzamiento: T('marketing', 5, 5, 'Lanzamiento de un perfume', 'Perfume launch'),
+    cuentas: T('finanzas', 1, 3, 'Llevar las cuentas de una estética', 'Books for a hair studio'), facturas: T('finanzas', 1, 2, 'Ordenar facturas', 'Sort invoices'), presupuesto: T('finanzas', 2, 3, 'Presupuesto de una boda', 'Wedding budget'), nomina: T('finanzas', 3, 4, 'Nómina de un restaurante', 'Restaurant payroll'), reporte: T('finanzas', 4, 4, 'Reporte del trimestre', 'Quarterly report'), plan: T('finanzas', 5, 5, 'Plan financiero de una boutique', 'Boutique financial plan'),
+    ventas: T('negociacion', 1, 3, 'Vender por mensaje', 'Sell over chat'), llamadas: T('negociacion', 1, 2, 'Atender clientes', 'Answer customers'), proveedor: T('negociacion', 2, 3, 'Negociar con un proveedor', 'Negotiate with a supplier'), contrato: T('negociacion', 3, 4, 'Cerrar un contrato chico', 'Close a small contract'), rentaLocal: T('negociacion', 4, 4, 'Negociar la renta de un local', 'Negotiate a shop lease'), alianza: T('negociacion', 5, 5, 'Alianza entre dos marcas', 'Two-brand partnership'),
+  };
+  BB.CLIENTES = ['Nadia', 'Teo', 'Lina', 'Bruno', 'Marisol', 'Iris', 'Dante', 'Olga', 'Remy', 'Paz', 'Suri', 'Elio'];
+})(typeof globalThis !== 'undefined' ? globalThis : this);

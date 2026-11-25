@@ -1,0 +1,7 @@
+{
+  "version": 1, "nombre": "Alba", "semilla": 4242, "uid": 1, "dia": 6, "hora": 11.5, "lugar": "casa", "dinero": 83.4, "energia": 72, "animo": 64, "hambre": 55,
+  "ap": { "piel": "miel", "cuerpo": "curvy", "estatura": 2, "prop": { "hombros": 0, "cintura": 0, "cadera": 1, "piernas": 0 }, "forma": "corazon", "ojos_": "almendrados", "iris": "verde", "cejas": "arqueadas", "pestanas": "largas", "nariz": "fina", "labios": "llenos", "pecas": "nariz", "lunar": "mejilla", "piercing": true, "pelo": "trenza", "colorPelo": "chocolate", "luces": "ninguna", "mk": {} },
+  "closet": [ { "id": "hoodie", "color": "#f6c3d2" }, { "id": "pants", "color": "#cfcbdb" }, { "id": "chanclas", "color": "#fff4ea" }, { "id": "playera", "color": "#fffaf5", "pagado": 8 } ],
+  "ropa": { "encima": { "id": "hoodie", "color": "#f6c3d2" }, "abajo": { "id": "pants", "color": "#cfcbdb" }, "pies": { "id": "chanclas", "color": "#fff4ea" } },
+  "unas": { "manos": "vino", "pies": null }, "raciones": 3, "hechos": 7, "rep": 12
+}

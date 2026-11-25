@@ -1,0 +1,9 @@
+referencias/
+capturas/
+node_modules/
+
+# Notas privadas de la dueña (no se publican)
+IDEAS_TYCOON.md
+PLAN_MAESTRO.md
+ESPEC_*.md
+prueba_arte_ilustracion.html

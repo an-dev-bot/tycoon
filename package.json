@@ -1,0 +1,6 @@
+{
+  "name": "tycoon",
+  "private": true,
+  "type": "commonjs",
+  "scripts": { "test": "node pruebas/t1.mjs", "publicar": "node herramientas/publicar.mjs" }
+}

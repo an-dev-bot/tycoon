@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Prueba de arte en pixel art</title>
+<style>
+:root{--fondo:#fdf1f5;--panel:#f6e6f0;--tinta:#3d2a45;--suave:#86698c;--rosa:#f58fb0;--rosa2:#ffe3ec;--linea:#efd3e0;--blanco:#fffafc}
+*{box-sizing:border-box}
+html{background:var(--fondo)}
+body{margin:0;font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--tinta);-webkit-text-size-adjust:100%}
+main{max-width:375px;margin:0 auto;padding:10px 10px 48px}
+header{padding:10px 4px 2px}
+header h1{font-size:24px;line-height:1.15;margin:0 0 2px;letter-spacing:.2px}
+header p{margin:0;color:var(--suave);font-size:14px}
+section{margin:22px 0 0}
+h2{font-size:18px;line-height:1.2;margin:0 4px 2px}
+h3{font-size:11.5px;letter-spacing:.9px;text-transform:uppercase;color:var(--suave);margin:12px 0 5px}
+.nota{margin:0 4px 8px;color:var(--suave);font-size:13.5px}
+/* pixeles nítidos: cada canvas se muestra a un múltiplo entero de su cuadrícula */
+canvas.px{display:block;image-rendering:crisp-edges;image-rendering:pixelated}
+canvas.px[hidden]{display:none}
+.panel{background:var(--panel);border-radius:14px;overflow:hidden}
+.tira{display:flex;justify-content:center}
+.tira figure{margin:0}
+.tira figcaption,.pie{font-size:12.5px;text-align:center;padding:5px 2px 7px;line-height:1.2;font-weight:600}
+.pie small,.tira figcaption small{display:block;font-weight:400;color:var(--suave)}
+.fila-titulo{font-size:12px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--suave);padding:8px 10px 0}
+.centro{display:flex;flex-direction:column;align-items:center;padding:10px 0 0}
+.centro canvas{border-radius:10px}
+.pila>*+*{margin-top:10px}
+/* Pruébala */
+.pb{display:grid;grid-template-columns:160px 1fr;gap:10px;align-items:start}
+.pb .fig{position:sticky;top:8px}
+.pb .fig p{margin:0;padding:6px 8px 9px;font-size:12px;color:var(--suave);text-align:center;line-height:1.25}
+.pb .ctl h3:first-child{margin-top:2px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{min-height:44px;min-width:44px;padding:0 10px;border-radius:12px;border:2px solid var(--linea);background:var(--blanco);font:600 13px/1.1 inherit;color:var(--tinta);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.chip.on{border-color:var(--rosa);background:var(--rosa2)}
+.chip:focus-visible{outline:3px solid #b9a3ea;outline-offset:1px}
+.chip.color{width:44px;padding:0;display:grid;place-items:center}
+.chip.color i{width:26px;height:26px;border-radius:50%;border:2px solid rgba(61,42,69,.25)}
+/* íconos */
+.iconos{display:flex;justify-content:center;gap:18px;padding:14px 0 4px}
+.iconos figure{margin:0}
+.iconos canvas{border-radius:22.5%;box-shadow:0 3px 0 rgba(61,42,69,.12)}
+.iconos figcaption{font-size:12.5px;font-weight:600;text-align:center;padding-top:7px}
+.chicos{display:flex;justify-content:center;align-items:center;gap:14px;padding:10px 0 12px;font-size:12.5px;color:var(--suave)}
+.chicos canvas{border-radius:22.5%}
+/* ficha */
+.ficha{padding:12px 12px 6px;font-size:13.5px}
+.ficha ol{margin:0 0 8px;padding-left:20px}
+.ficha li{margin:0 0 5px}
+table{width:100%;border-collapse:collapse;font-size:12.5px;margin:4px 0 10px}
+th,td{text-align:left;padding:4px 4px;border-bottom:1px solid var(--linea)}
+th{font-size:11px;letter-spacing:.5px;text-transform:uppercase;color:var(--suave)}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+/* modo captura: ?solo=id muestra una sola sección */
+body.solo header,body.solo section:not(.ver){display:none}
+body.solo section{margin-top:0}
+</style>
+</head>
+<body>
+<main>
+<header>
+  <h1 id="titulo"></h1>
+  <p>Prueba de arte · Paso 0 · todo en pixel art</p>
+</header>
+
+<section id="pruebala">
+  <h2>Pruébala</h2>
+  <p class="nota">Toca para cambiarla. Cada prenda es un solo dibujo que se acomoda a su cuerpo.</p>
+  <div class="pb">
+    <div class="fig panel"><div id="pb-fig"></div><p id="pb-desc"></p></div>
+    <div class="ctl" id="pb-ctl"></div>
+  </div>
+</section>
+
+<section id="complexiones">
+  <h2>Las 4 complexiones</h2>
+  <p class="nota">Solo con la capa básica, que nunca se quita. Cambian hombros, cintura, cadera, brazos y piernas.</p>
+  <div class="panel"><div class="tira" id="t-complexiones"></div></div>
+</section>
+
+<section id="cuerpos">
+  <h2>Los 12 cuerpos</h2>
+  <p class="nota">4 complexiones × 3 estaturas (baja, media y alta lado a lado), con el mismo vestido: un solo dibujo para las 12.</p>
+  <div class="panel" id="t-cuerpos"></div>
+</section>
+
+<section id="piel">
+  <h2>3 tonos de piel</h2>
+  <div class="panel"><div class="tira" id="t-piel"></div></div>
+</section>
+
+<section id="caras">
+  <h2>3 caras</h2>
+  <p class="nota">Así se ve la cara en el cuerpo completo (aquí ampliada): ojos con brillo, pestañas, pecas, rubor y gloss.</p>
+  <div class="panel"><div class="tira" id="t-caras"></div></div>
+</section>
+
+<section id="peinados">
+  <h2>4 peinados</h2>
+  <div class="panel"><div class="tira" id="t-peinados"></div></div>
+</section>
+
+<section id="outfits">
+  <h2>4 outfits</h2>
+  <p class="nota">De lejos se ven las uñas, los aretes, el collar, el moño y la bolsa.</p>
+  <div class="panel"><div class="tira" id="t-outfits"></div></div>
+</section>
+
+<section id="animacion">
+  <h2>Animación en reposo</h2>
+  <p class="nota">Parpadea cada pocos segundos, respira (1 pixel) y el pelo se mece. Son 4 cuadros; se apaga en Ajustes.</p>
+  <div class="panel"><div class="tira" id="t-animacion"></div></div>
+</section>
+
+<section id="cerca">
+  <h2>La cara de cerca</h2>
+  <p class="nota">Cuadrícula de 96×96 para el maquillaje: natural y glam.</p>
+  <div class="pila" id="t-cerca"></div>
+</section>
+
+<section id="manos">
+  <h2>Las manos de cerca</h2>
+  <p class="nota">128×80. Manos lisas y finas, uñas con diseño y brillo, anillos y pulseras.</p>
+  <div class="pila" id="t-manos"></div>
+</section>
+
+<section id="pies">
+  <h2>Los pies de cerca</h2>
+  <p class="nota">128×80. Pedicure, sandalias con moñito, tobillera y anillo.</p>
+  <div class="pila" id="t-pies"></div>
+</section>
+
+<section id="depa-dia">
+  <h2>El depa de día</h2>
+  <p class="nota">Cama, buró con lámpara, espejo, planta, repisa, tapete y la ventana con la ciudad.</p>
+  <div class="panel centro" style="padding:0" id="t-dia"></div>
+</section>
+
+<section id="depa-noche">
+  <h2>El depa de noche</h2>
+  <p class="nota">El cuarto se oscurece; a ella la ilumina la lámpara.</p>
+  <div class="panel centro" style="padding:0" id="t-noche"></div>
+</section>
+
+<section id="iconos">
+  <h2>El ícono</h2>
+  <p class="nota">De espaldas, con su moño crema de perla, la nieve y la ciudad. Y el de Navidad.</p>
+  <div class="panel">
+    <div class="iconos" id="t-iconos"></div>
+    <div class="chicos" id="t-chicos"></div>
+  </div>
+</section>
+
+<section id="ficha">
+  <h2>Ficha técnica</h2>
+  <div class="panel ficha" id="t-ficha"></div>
+</section>
+</main>
+
+<script src="arte/motor.js"></script>
+<script src="arte/datos.js"></script>
+<script src="arte/opciones.js"></script>
+<script src="arte/ella.js"></script>
+<script src="arte/cerca.js"></script>
+<script src="arte/escenas.js"></script>
+<script>
+'use strict';
+const { ELLA, CERCA, ESCENAS } = BB, $ = id => document.getElementById(id);
+document.title = BB.JUEGO + ' · Prueba de arte';
+$('titulo').textContent = BB.JUEGO;
+
+const medidas = [];                                   // para la ficha: qué se dibujó, cuánto pesa y cuánto tardó
+function lienzo(capa, escala) {
+  const cv = document.createElement('canvas'); capa.alCanvas(cv); cv.className = 'px';
+  cv.style.width = capa.w * escala + 'px'; cv.style.height = capa.h * escala + 'px';
+  return cv;
+}
+function medir(nombre, fn) { const t = performance.now(), capa = fn(), ms = performance.now() - t; medidas.push({ nombre, capa, ms }); return capa; }
+function el(tag, cls, txt) { const e = document.createElement(tag); if (cls) e.className = cls; if (txt !== undefined) e.textContent = txt; return e; }
+function figuraCon(cont, cv, titulo, sub) {
+  const f = el('figure'); f.appendChild(cv);
+  if (titulo) { const c = el('figcaption', '', titulo); if (sub) c.appendChild(el('small', '', sub)); f.appendChild(c); }
+  cont.appendChild(f); return f;
+}
+
+// la chica de las comparaciones: en cada sección cambia una sola cosa
+const BASE = { piel: 'clara', cuerpo: 'promedio', estatura: 'media', cara: 'dulce', pelo: 'ondas', colorPelo: 'miel', outfit: 'sueter', unas: 'rosa' };
+const X0 = 19, ANCHO = 44;                             // recorte horizontal de la cuadrícula de 80: ahí cabe toda la figura
+const fig = (o, y = 0, h = ELLA.H) => ELLA.figura({ ...BASE, ...o }).recorte(X0, y, ANCHO, h);
+
+/* ---------- secciones fijas ---------- */
+for (const c in BB.CUERPOS) figuraCon($('t-complexiones'), lienzo(medir('Cuerpo con capa básica', () => fig({ cuerpo: c, outfit: 'base', pelo: 'chongo' })), 2), BB.CUERPOS[c].nombre);
+
+for (const c in BB.CUERPOS) {
+  $('t-cuerpos').appendChild(el('div', 'fila-titulo', BB.CUERPOS[c].nombre));
+  const t = el('div', 'tira');
+  for (const e in BB.ESTATURAS) figuraCon(t, lienzo(fig({ cuerpo: c, estatura: e, outfit: 'vestido', pelo: 'mediacola', bolsa: true }), 2), BB.ESTATURAS[e].nombre);
+  $('t-cuerpos').appendChild(t);
+}
+
+[['clara', 'ondas', 'miel'], ['miel', 'lacio', 'chocolate'], ['morena', 'chongo', 'negro']].forEach(([piel, pelo, colorPelo]) =>
+  figuraCon($('t-piel'), lienzo(fig({ piel, pelo, colorPelo, outfit: 'pijama' }), 2), BB.PIELES[piel].nombre));
+
+for (const c in BB.CARAS) {
+  const G = ELLA.rig('promedio', 'media'), capa = ELLA.figura({ ...BASE, cara: c, pelo: 'mediacola' }).recorte(G.cx - 14, G.y0 - 7, 28, 35);
+  figuraCon($('t-caras'), lienzo(capa, 4), BB.CARAS[c].nombre);
+}
+
+for (const p in BB.PEINADOS) figuraCon($('t-peinados'), lienzo(fig({ pelo: p }, ELLA.rig('promedio', 'media').y0 - 20, 84), 2), BB.PEINADOS[p].corto);
+
+[['inicio', {}], ['sueter', { bolsa: true }], ['pijama', {}], ['vestido', { bolsa: true }]].forEach(([o, extra]) =>
+  figuraCon($('t-outfits'), lienzo(medir('Figura completa: ' + BB.OUTFITS[o].nombre, () => fig({ outfit: o, ...extra })), 2), BB.OUTFITS[o].nombre));
+
+{ const c = medir('Animación en reposo (4 cuadros)', () => ELLA.cuadros({ ...BASE, bolsa: true })[1]) && ELLA.cuadros({ ...BASE, bolsa: true });
+  [[0, 'Reposo'], [1, 'Respira', 'sube 1 pixel y el pelo se mece'], [2, 'Parpadea']].forEach(([i, t, s]) => figuraCon($('t-animacion'), lienzo(c[i].recorte(X0, 0, ANCHO, ELLA.H), 2), t, s)); }
+
+function cerca(cont, capa, titulo, sub) { const d = el('div', 'panel centro'); d.appendChild(lienzo(capa, capa.w === 96 ? 3 : 2)); const p = el('div', 'pie', titulo); if (sub) p.appendChild(el('small', '', sub)); d.appendChild(p); cont.appendChild(d); return d; }
+cerca($('t-cerca'), medir('Cara de cerca', () => CERCA.cara({ ...BASE, maquillaje: 'natural' })), 'Natural', 'Casi no se nota: rubor suave, pocas pecas, gloss clarito');
+cerca($('t-cerca'), CERCA.cara({ ...BASE, cara: 'almendra', pelo: 'lacio', colorPelo: 'negro', iris: 'cafe', maquillaje: 'glam' }), 'Glam', 'Delineado fino, sombra rosa suave, labios con color');
+cerca($('t-cerca'), CERCA.cara({ ...BASE, cara: 'tierna', piel: 'morena', pelo: 'chongo', colorPelo: 'chocolate', maquillaje: 'glam' }), 'Glam en piel morena');
+const cercaViva = cerca($('t-cerca'), new BB.Capa(96, 96), 'La de «Pruébala»', 'Cambia con lo que elijas arriba');
+
+cerca($('t-manos'), medir('Manos de cerca', () => CERCA.manos({ unasA: 'jelly', unasB: 'french' })), 'Rosa jelly con corazón · French', 'Anillos de oro y de perla, pulseras');
+cerca($('t-manos'), CERCA.manos({ piel: 'miel', unasA: 'lila', unasB: 'vino', manga: '#f6c3d2' }), 'Lila con puntitos · Vino coffin');
+cerca($('t-pies'), medir('Pies de cerca', () => CERCA.pies({ unasPies: 'rosa' })), 'Pedicure rosa', 'Sandalias con moñito, tobillera y anillo');
+cerca($('t-pies'), CERCA.pies({ piel: 'morena', unasPies: 'french', sandalia: '#b9a3ea' }), 'Pedicure french en piel morena');
+
+for (const [nav, nombre] of [[false, 'Oficial'], [true, 'Navidad']]) {
+  const capa = medir('Ícono ' + nombre.toLowerCase(), () => ESCENAS.icono({ navidad: nav }));
+  figuraCon($('t-iconos'), lienzo(capa, 2), nombre);
+  $('t-chicos').appendChild(lienzo(capa, 1));
+}
+$('t-chicos').appendChild(el('span', '', 'Tamaño real en el teléfono'));
+
+/* ---------- Pruébala ---------- */
+const st = { piel: 'clara', cuerpo: 'promedio', estatura: 'media', cara: 'dulce', pelo: 'ondas', colorPelo: 'miel', outfit: 'sueter', color: null, maquillaje: 'natural', unas: 'rosa', bolsa: true, animacion: true };
+const qs = new URLSearchParams(location.search);
+try { if (qs.get('st')) Object.assign(st, JSON.parse(qs.get('st'))); } catch (e) { /* estado inválido: se queda el de siempre */ }
+
+const GRUPOS = [
+  { k: 'cuerpo', t: 'Complexión', d: BB.CUERPOS },
+  { k: 'estatura', t: 'Estatura', d: BB.ESTATURAS },
+  { k: 'piel', t: 'Piel', d: BB.PIELES, color: v => v.b },
+  { k: 'cara', t: 'Cara', d: BB.CARAS },
+  { k: 'pelo', t: 'Peinado', d: BB.PEINADOS, nombre: v => v.corto },
+  { k: 'colorPelo', t: 'Color de pelo', d: BB.PELOS_COLOR, color: v => v.m },
+  { k: 'outfit', t: 'Outfit', d: BB.OUTFITS },
+  { k: 'color', t: 'Color de la prenda', dinamico: () => Object.fromEntries(BB.OUTFITS[st.outfit].colores.map(c => [c, { nombre: 'Color ' + c }])), color: (v, id) => id, valor: () => st.color || BB.OUTFITS[st.outfit].colores[0] },
+  { k: 'maquillaje', t: 'Maquillaje', d: BB.MAQUILLAJE },
+  { k: 'unas', t: 'Uñas', d: BB.UNAS, color: v => v.color || '#fbdcd5' },
+  { k: 'bolsa', t: 'Bolsa', d: { si: { nombre: 'Con bolsa' }, no: { nombre: 'Sin bolsa' } }, valor: () => st.bolsa ? 'si' : 'no', pon: id => { st.bolsa = id === 'si'; } },
+  { k: 'animacion', t: 'Ajustes · Animación', d: { si: { nombre: 'Encendida' }, no: { nombre: 'Apagada' } }, valor: () => st.animacion ? 'si' : 'no', pon: id => { st.animacion = id === 'si'; } },
+];
+function controles() {
+  const cont = $('pb-ctl'); cont.textContent = '';
+  for (const g of GRUPOS) {
+    cont.appendChild(el('h3', '', g.t));
+    const fila = el('div', 'chips'), datos = g.dinamico ? g.dinamico() : g.d, actual = g.valor ? g.valor() : st[g.k];
+    for (const id in datos) {
+      const v = datos[id], b = el('button', 'chip' + (g.color ? ' color' : '') + (id === actual ? ' on' : ''));
+      b.type = 'button'; b.setAttribute('aria-pressed', id === actual);
+      if (g.color) { const i = el('i'); i.style.background = g.color(v, id); b.appendChild(i); b.setAttribute('aria-label', g.t + ': ' + v.nombre); b.title = v.nombre; }
+      else b.textContent = g.nombre ? g.nombre(v) : v.nombre;
+      b.addEventListener('click', () => { if (g.pon) g.pon(id); else st[g.k] = id; if (g.k === 'outfit') st.color = null; pintar(); });
+      fila.appendChild(b);
+    }
+    cont.appendChild(fila);
+  }
+}
+function cambia(cont, cv) { cont.replaceChild(cv, cont.firstChild); }
+// animación en reposo: 4 cuadros ya dibujados; solo se cambia cuál se ve
+let cuadrosPB = [], reloj = null, paso = 0, pausada = false;
+const mostrar = i => cuadrosPB.forEach((c, j) => { c.hidden = j !== i; });
+function animar() {
+  clearInterval(reloj); reloj = null; mostrar(0);
+  if (!st.animacion || pausada) return;
+  reloj = setInterval(() => { paso++; mostrar(((paso / 10) & 1) + (paso % 26 === 0 ? 2 : 0)); }, 160);      // respira cada 1.6 s; parpadea cada 4 s
+}
+function pintar() {
+  controles();
+  const o = { ...st, color: st.color || undefined };
+  cuadrosPB = ELLA.cuadros(o).map(c => lienzo(c, 2)); $('pb-fig').textContent = ''; cuadrosPB.forEach(c => $('pb-fig').appendChild(c)); animar();
+  $('pb-desc').textContent = BB.OUTFITS[st.outfit].desc;
+  cambia(cercaViva, lienzo(CERCA.cara(o), 3));
+  for (const [id, noche, extra] of [['t-dia', false, { outfit: st.outfit === 'pijama' ? 'sueter' : st.outfit, color: st.outfit === 'pijama' ? undefined : o.color }], ['t-noche', true, { outfit: 'pijama', color: undefined, bolsa: false }]]) {
+    const capa = ESCENAS.depa({ noche, ella: { ...o, ...extra } }); $(id).textContent = ''; $(id).appendChild(lienzo(capa, 2));
+  }
+}
+medir('Depa de día', () => ESCENAS.depa({ ella: BASE })); medir('Depa de noche', () => ESCENAS.depa({ noche: true, ella: { ...BASE, outfit: 'pijama' } }));
+pintar();
+window.BBP = { st, pon(o) { Object.assign(st, o); pintar(); }, pausa() { pausada = true; animar(); } };
+
+/* ---------- ficha ---------- */
+(function ficha() {
+  const f = $('t-ficha'), kb = n => n < 1024 ? n + ' B' : (n / 1024).toFixed(1) + ' KB';
+  const pesoPNG = capa => Math.round((lienzo(capa, 1).toDataURL('image/png').length - 22) * 3 / 4);
+  const ol = el('ol');
+  ['Capas, de atrás hacia adelante: pelo de atrás → piernas y torso → capa básica (top y short, siempre) → calcetas → zapatos → parte de abajo → parte de arriba o vestido → collar → brazos y manos → mangas → cabeza → pelo de enfrente → bolsa.',
+    'Cada prenda es una función de las medidas del cuerpo (hombros, busto, cintura, cadera, piernas, estatura): se dibuja una vez y sale ajustada a las 12 combinaciones.',
+    'Paleta corta: cada color da brillo, luz, base, sombra y sombra profunda, y su contorno es el mismo color en oscuro (nunca negro puro). La luz viene de arriba a la izquierda. Sin difuminados: pixeles enteros.',
+    'Nada se guarda como imagen: los dibujos se arman en el teléfono a partir de datos y pesan solo su código.',
+    'Animación en reposo: 4 cuadros que se dibujan una vez y se guardan; después solo se cambia cuál se ve. Se apaga en Ajustes.'].forEach(t => ol.appendChild(el('li', '', t)));
+  f.appendChild(ol);
+  const tabla = (cab, filas) => { const t = el('table'), h = el('tr'); cab.forEach((c, i) => h.appendChild(el('th', i ? 'n' : '', c))); t.appendChild(h); filas.forEach(fl => { const tr = el('tr'); fl.forEach((c, i) => tr.appendChild(el('td', i ? 'n' : '', c))); t.appendChild(tr); }); f.appendChild(t); };
+  f.appendChild(el('h3', '', 'Dibujos'));
+  const vistos = new Set();
+  tabla(['Dibujo', 'Cuadrícula', 'Colores', 'Como PNG', 'Tarda'], medidas.filter(m => !vistos.has(m.nombre) && vistos.add(m.nombre)).map(m => [m.nombre, m.capa.w + '×' + m.capa.h, String(m.capa.colores()), kb(pesoPNG(m.capa)), m.ms.toFixed(0) + ' ms']));
+  f.appendChild(el('h3', '', 'Prendas (un dibujo cada una)'));
+  const G = ELLA.rig('promedio', 'media');
+  tabla(['Prenda', 'Pesa (código)', 'Tarda'], Object.keys(ELLA.PRENDAS).map(k => { const t = performance.now(); for (let i = 0; i < 20; i++) ELLA.PRENDAS[k](G, '#f6c3d2', BASE); return [BB.PRENDAS_NOMBRE[k] || k, kb(ELLA.PRENDAS[k].toString().length), ((performance.now() - t) / 20).toFixed(1) + ' ms']; }));
+})();
+
+if (qs.get('solo')) { document.body.classList.add('solo'); qs.get('solo').split(',').forEach(id => { const s = $(id); if (s) s.classList.add('ver'); }); }
+document.documentElement.dataset.listo = '1';
+</script>
+</body>
+</html>
