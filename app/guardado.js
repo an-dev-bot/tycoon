@@ -18,7 +18,7 @@
   // lo que falte (por venir de una versión anterior) toma su valor de una partida nueva
   function completa(s) {
     const base = BB.L.nueva({}, s.nombre, s.semilla, s.uid);
-    const llena = (d, b) => { for (const k in b) if (d[k] === undefined) d[k] = b[k]; else if (b[k] && typeof b[k] === 'object' && !Array.isArray(b[k]) && d[k] && typeof d[k] === 'object' && !['ropa', 'mk', 'mkLook', 'muebles', 'usosHoy', 'unas'].includes(k)) llena(d[k], b[k]); return d; };
+    const llena = (d, b) => { for (const k in b) if (d[k] === undefined) d[k] = b[k]; else if (b[k] && typeof b[k] === 'object' && !Array.isArray(b[k]) && d[k] && typeof d[k] === 'object' && !['ropa', 'mk', 'mkLook', 'muebles', 'pos', 'usosHoy', 'unas'].includes(k)) llena(d[k], b[k]); return d; };
     llena(s, base); s.ap.manos = s.unas.manos; s.ap.pies = s.unas.pies;
     s.uid = Math.max(s.uid, 1 + Math.max(0, ...[s.closet, s.cuentas, s.paquetes, s.ventas, s.fotos, s.notas, s.ofertas, s.casa.tengo, s.bazar.piezas].flatMap(l => l.map(x => Math.max(x.uid || 0, x.n || 0)))));
     return s;

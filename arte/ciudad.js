@@ -59,6 +59,38 @@
     } else for (const x of [30, 82, 132]) for (const y of [80, 166]) { L.vl(x, y - 16, y, '#8d8598'); L.rect(x - 1, y - 18, 3, 3, '#fff3d6'); }
     return L;
   }
+  /* ---------- ella caminando (13×32): chiquita, de cuerpo entero, con su pelo, su piel y los colores de su ropa ---------- */
+  function caminante(v, paso = 0) {
+    const L = new Capa(15, 34), sk = BB.PIELES[v.piel] || BB.PIELES.clara, h = BB.PELOS_COLOR[v.colorPelo] || BB.PELOS_COLOR.miel, R = v.ropa || {}, cat = p => p && BB.CATALOGO[p.id];
+    const alto = R.encima || R.vestido || R.base, arriba = rampa(alto ? alto.color : '#fffaf5'), bajo = R.vestido || R.abajo, dB = cat(bajo), falda = !!R.vestido || (dB && /falda/i.test(dB.dibujo)), corto = !bajo || /short/i.test(dB ? dB.dibujo : '');
+    const c2 = rampa(bajo ? bajo.color : '#fffaf5'), zap = rampa(R.pies ? R.pies.color : sk.b), manga = cat(alto) && /hoodie|sueter|sudadera/i.test(cat(alto).dibujo) || (cat(alto) && ((cat(alto).q || {}).manga === 'larga' || ((cat(alto).q || {}).arriba || {}).manga === 'larga'));
+    const y = paso & 1 ? 0 : 1, a = [0, 1, 0, -1][paso & 3], recogido = ['chongo', 'espacio', 'topknot', 'coleta'].includes(v.pelo);
+    if (!recogido) L.rect(3, y + 3, 9, 11, h.d);
+    if (v.pelo === 'coleta') L.rect(11, y + 1, 2, 9, h.d); if (v.pelo === 'chongo' || v.pelo === 'topknot') L.elipse(7.5, y, 2.4, 2, h.m); if (v.pelo === 'espacio') { L.elipse(4, y + .5, 2, 2, h.m); L.elipse(11, y + .5, 2, 2, h.m); }
+    // piernas: un paso adelante y otro atrás
+    const pierna = bajo && !falda && !corto ? c2 : { b: sk.b, s: sk.s }; for (const [x, k] of [[5, a], [8, -a]]) { const s = k > 0 ? 1 : 0; L.rect(x, y + 17, 2, 13 - s - y, pierna.b); L.vl(x + 1, y + 17, 29 - s, pierna.s); if (R.calcetas || R.medias) L.rect(x, 24 - s, 2, 6, (R.calcetas || R.medias).color); L.rect(x - (x < 7 ? 1 : 0), 30 - s, 3, 2, zap.b); }
+    if (falda) { L.poli([[5, y + 14], [10, y + 14], [11.6, y + 21], [3.4, y + 21]], c2.b); L.vl(9, y + 16, y + 20, c2.s); } else if (corto) L.rect(5, y + 15, 5, 4, c2.b); else { L.rect(5, y + 15, 5, 3, c2.b); }
+    L.rect(4, y + 9, 7, 7, arriba.b); L.vl(10, y + 10, y + 15, arriba.s); L.hl(4, 10, y + 15, arriba.s);
+    for (const [x, k] of [[3, -a], [11, a]]) { L.rect(x, y + 9, 1, 7, manga ? arriba.s : sk.s); L.rect(x, y + 10, 1, 4 + k, manga ? arriba.b : sk.b); L.px(x, y + 15 + k, sk.b); L.px(x, y + 16 + k, sk.s); }
+    L.rect(6, y + 8, 3, 2, sk.s); L.rect(5, y + 3, 5, 5, sk.b); L.px(4, y + 5, sk.b); L.px(10, y + 5, sk.b); L.hl(5, 9, y + 7, sk.s); L.px(6, y + 5, '#3d2a45'); L.px(8, y + 5, '#3d2a45'); L.px(5, y + 6, sk.rubor); L.px(9, y + 6, sk.rubor); L.px(7, y + 7, sk.labio);
+    L.rect(4, y + 1, 7, 2, h.m); L.hl(5, 9, y, h.m); L.hl(5, 7, y + 1, h.l); L.px(4, y + 3, h.m); L.px(10, y + 3, h.m); L.px(3, y + 2, h.m); L.px(11, y + 2, h.m);
+    if (!recogido) { L.vl(3, y + 3, y + 12, h.m); L.vl(11, y + 3, y + 12, h.m); L.vl(4, y + 4, y + 10, h.m); L.vl(10, y + 4, y + 10, h.d); }
+    if (R.bolsa) { L.rect(11, y + 14, 3, 4, R.bolsa.color); }
+    L.contorno('#3d2a45'); return L;
+  }
+  // por dónde camina: de una puerta a otra, por la banqueta y cruzando por las rayas (puntos donde pisa)
+  const puertaDe = id => { const q = LUGARES[id]; return [q.x + q.w - 9.5, q.y + q.h]; };
+  function camino(de, a) {
+    const A = puertaDe(de), B = puertaDe(a), ac = p => p[1] < 100 ? 82 : 168, p = [A, [A[0], ac(A)]];
+    if (ac(A) < ac(B)) p.push([72, 82], [72, 105], [55, 105], [55, 168]); else if (ac(A) > ac(B)) p.push([55, 168], [55, 105], [72, 105], [72, 82]);
+    p.push([B[0], ac(B)], B); return p;
+  }
+  // qué se toca dentro de cada lugar: k y su caja
+  const TOCA = {
+    tienda: [['ropa', 4, 78, 58, 70], ['ropa', 100, 78, 58, 70]], bazar: [['bazar', 4, 82, 60, 70], ['bazar', 100, 86, 58, 66]],
+    super: [['super', 4, 76, 62, 70], ['superRico', 100, 76, 58, 70]], salon: [['pelo', 8, 72, 46, 80], ['unas', 108, 72, 46, 80]], cafe: [['menu', 104, 88, 54, 60], ['laptop', 10, 118, 50, 38]],
+  };
+  const toca = id => [...(TOCA[id] || []).map(([k, x, y, w, h]) => ({ k, x, y, w, h })), { k: 'ella', x: 62, y: 38, w: 38, h: 144 }];
   /* ---------- interiores ---------- */
   const IW = 160, IH = 120;
   function ropaColgada(t, x0, x1, y, cs) { t.hl(x0, x1, y, '#b58f5a'); for (let x = x0 + 3, i = 0; x < x1 - 8; x += 11, i++) { const p = rampa(cs[i % cs.length]), m = new Capa(IW, IH); m.vl(x + 4, y + 1, y + 2, '#8d8598'); m.poli([[x, y + 5], [x + 3, y + 3], [x + 6, y + 3], [x + 9, y + 5], [x + 8, y + 22 + (i % 3) * 3], [x + 1, y + 22 + (i % 3) * 3]], p.b); m.sombrear(1, 0, 1, p.b, p.s); m.contorno(p.o); t.sobre(m); } }
@@ -81,5 +113,5 @@
     if (o.ella) { T.elipse(82, 180, 17, 2.2, mix('#e6cdb4', '#8a6a9a', .3)); T.sobre(BB.ELLA.figura({ ...o.ella, sinSombra: true }), 40, 179 - BB.ELLA.SUELO); }
     return T;
   }
-  BB.CIUDAD = { mapa, lugar, LUGARES, W, H };
+  BB.CIUDAD = { mapa, lugar, LUGARES, caminante, camino, toca, W, H };
 })(typeof globalThis !== 'undefined' ? globalThis : this);

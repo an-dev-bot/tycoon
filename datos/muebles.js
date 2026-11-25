@@ -45,5 +45,13 @@
     gastado: { nombre: 'Duela gastada', en: 'Worn boards', c: '#cdb9a6', t: '#b8a28d', precio: 0 }, claro: { nombre: 'Duela clara', en: 'Light wood', c: '#e6c5a6', t: '#d3ad8a', precio: 140 },
     miel: { nombre: 'Duela miel', en: 'Honey wood', c: '#d9a878', t: '#c08d5f', precio: 140 }, blanco: { nombre: 'Duela blanca', en: 'White wood', c: '#f1e9e4', t: '#ddd0ca', precio: 160 },
   };
-  BB.VISTAS = { cuarto: { nombre: 'Recámara', en: 'Bedroom' }, cocina: { nombre: 'Cocina y trabajo', en: 'Kitchen & desk' }, bano: { nombre: 'Baño', en: 'Bathroom' } };
+  /* Acomodar: cuántos pixeles se puede mover cada mueble de su lugar ([menos, más] a lo ancho y a lo alto).
+     Lo que va encima de otro (lámpara, cojines, peluche) se mueve con él y también un poquito por su cuenta. */
+  BB.ACOMODO = {
+    cama: { x: [-102, 0], y: [0, 24] }, buro: { x: [-42, 89], y: [0, 20] }, espejo: { x: [-3, 134], y: [0, 16] }, planta: { x: [-22, 112], y: [0, 40] }, puff: { x: [-1, 120], y: [-34, 12] }, tapete: { x: [-24, 8], y: [-22, 1] },
+    cuadro: { x: [-124, 12], y: [-6, 56] }, fotos: { x: [-94, 39], y: [-8, 36] }, repisa: { x: [-116, 1], y: [-30, 44] }, lampara: { x: [-5, 4], y: [0, 0] }, cojines: { x: [-18, 4], y: [0, 0] }, peluche: { x: [-4, 24], y: [0, 0] },
+    escritorio: { x: [-2, 40], y: [0, 16] }, silla: { x: [-14, 116], y: [-4, 34] }, tocador: { x: [-57, 4], y: [0, 16] }, frase: { x: [-12, 50], y: [-44, 26] }, colgante: { x: [-38, 96], y: [-14, 10] }, perfumes: { x: [-8, 10], y: [0, 0] },
+  };
+  // los cuartos, en el orden en que se deslizan
+  BB.VISTAS = { cuarto: { nombre: 'Recámara', en: 'Bedroom' }, cocina: { nombre: 'Cocina y trabajo', en: 'Kitchen & desk' }, entrada: { nombre: 'Entrada', en: 'Entryway' }, bano: { nombre: 'Baño', en: 'Bathroom' } };
 })(typeof globalThis !== 'undefined' ? globalThis : this);

@@ -13,7 +13,7 @@
   /* ---------- dibujos ---------- */
   function lienzo(capa, esc) { const cv = doc.createElement('canvas'); capa.alCanvas(cv); cv.className = 'px'; cv.style.width = capa.w * esc + 'px'; cv.style.height = capa.h * esc + 'px'; cv.setAttribute('aria-hidden', 'true'); return cv; }
   // guarda dibujos ya hechos para no repetirlos
-  function memoria(max) { const m = new Map(); return (k, fn) => { if (m.has(k)) { const v = m.get(k); m.delete(k); m.set(k, v); return v; } const v = fn(); m.set(k, v); if (m.size > max) m.delete(m.keys().next().value); return v; }; }
+  function memoria(max) { const m = new Map(); const g = (k, fn) => { if (m.has(k)) { const v = m.get(k); m.delete(k); m.set(k, v); return v; } const v = fn(); m.set(k, v); if (m.size > max) m.delete(m.keys().next().value); return v; }; g.olvida = k => m.delete(k); return g; }
   const memFig = memoria(60), memEsc = memoria(24), memMini = memoria(400), memCerca = memoria(30);
   const aLienzo = capa => capa.alCanvas(doc.createElement('canvas'));
   // los dibujos de la pantalla anterior se vuelven a usar en la nueva (no se copian otra vez)
@@ -27,6 +27,7 @@
   // figura viva: un canvas que respira y parpadea
   const vivas = new Set(); let reloj = null, paso = 0;
   function figura(v, esc, noche, quieta) {
+    if (!v.sinSombra && !v.colorSombra && BB.TEMA.oscuro()) v = { ...v, colorSombra: '#57466b' };      // sombra que se ve bien sobre lila oscuro
     const c = doc.createElement('canvas'); c.width = CORTE[1]; c.height = BB.ELLA.H; c.className = 'px fig'; c.style.width = c.width * esc + 'px'; c.style.height = c.height * esc + 'px'; c.setAttribute('role', 'img'); c.setAttribute('aria-label', BB.app && BB.app.s ? BB.app.s.nombre : BB.JUEGO);
     const pinta = i => { const x = c.getContext('2d'); x.clearRect(0, 0, c.width, c.height); x.drawImage(cuadro(v, i, noche), 0, 0); }; pinta(0);
     if (!quieta) { c._pinta = pinta; c._i = 0; vivas.add(c); anima(); }
@@ -46,21 +47,16 @@
   if (menosMov.addEventListener) menosMov.addEventListener('change', () => anima());
   if (doc) doc.addEventListener('visibilitychange', () => anima());
   function escena(clave, fn, esc) { return reusa(memEsc(clave, () => aLienzo(fn())), esc); }
+  const olvida = k => memEsc.olvida(k);
   function cerca(tipo, v, esc) { return copiaDe(memCerca(tipo + JSON.stringify(v), () => aLienzo(BB.CERCA[tipo](v))), esc); }
   function mini(tipo, id, color, caja) {
     const cv = memMini(tipo + id + color, () => aLienzo(tipo === 'ropa' ? BB.miniatura(id, color) : BB.DEPA.mini(id)));
     const e = Math.min((caja || 68) / cv.width, (caja || 68) / cv.height); return reusa(cv, e < 1 ? .5 : Math.min(3, Math.floor(e)));      // medio pixel = 1 pixel real en un teléfono
   }
-  // íconos chiquitos en pixeles
-  const ICONOS = {
-    ella: ['...ooo...', '..ooooo..', '.ooaaaoo.', '.oaaaaao.', '.ooaaaoo.', '.oo.a.oo.', '..bbbbb..', '.bbbbbbb.'], casa: ['....o....', '...ooo...', '..ooooo..', '.ooooooo.', '..bbbbb..', '..bbabb..', '..bbabb..', '..bbabb..'],
-    ciudad: ['...oo....', '...oo.bb.', '.b.oo.bb.', '.b.oo.bb.', '.boooobb.', '.boaoabb.', '.booooab.', '.boaoabb.'], telefono: ['..ooooo..', '..obbbo..', '..obabo..', '..obbbo..', '..obabo..', '..obbbo..', '..ooaoo..', '..ooooo..'],
-    energia: ['....oo...', '...oo....', '..oooo...', '....oo...', '...oo....', '...o.....'], animo: ['.oo.oo.', 'ooooooo', 'oaooooo', '.ooooo.', '..ooo..', '...o...'], hambre: ['o.o.o.o', 'o.o.o.o', 'ooo..o.', '.o...o.', '.o...o.', '.o...o.'],
-    banco: ['....o....', '..ooooo..', 'ooooooooo', '.b.b.b.b.', '.b.b.b.b.', '.b.b.b.b.', 'ooooooooo'], mensajes: ['.ooooooo.', 'ooooooooo', 'oaoaoaoao', 'ooooooooo', '.ooooooo.', '..oo.....', '..o......'], trabajos: ['...ooo...', '...o.o...', 'ooooooooo', 'obbbabbbo', 'obbbbbbbo', 'obbbbbbbo', 'ooooooooo'],
-    tienda: ['...ooo...', '..o...o..', '.ooooooo.', '.obbbbbo.', '.obaaabo.', '.obbabbo.', '.ooooooo.'], ventas: ['oooo.....', 'oaooo....', 'ooooooo..', '.ooooooo.', '..ooooooo', '...ooooo.', '....ooo..'], calendario: ['.o.....o.', 'ooooooooo', 'obbbbbbbo', 'obababab o'.replace(' ', ''), 'obbbbbbbo', 'obabababo', 'ooooooooo'],
-    fotos: ['..ooo....', 'ooooooooo', 'ooobbbooo', 'oobaaaboo', 'oobaaaboo', 'ooobbbooo', 'ooooooooo'], notas: ['.ooooooo.', '.obbbbbo.', '.obaaabo.', '.obbbbbo.', '.obaaabo.', '.obbbbbo.', '.ooooooo.'], ajustes: ['...o.o...', '.ooooooo.', '.oobbboo.', 'oobb.bboo', '.oobbboo.', '.ooooooo.', '...o.o...'],
-  };
-  function icono(k, esc, cs) { return reusa(memMini('i' + k + (cs || ''), () => { const f = ICONOS[k], w = Math.max(...f.map(x => x.length)), L = new BB.Capa(w, f.length), [o, b, a] = cs ? cs.split(',') : ['#f58fb0', '#ffd9e4', '#ffffff']; L.dibujo(0, 0, f, { o, b, a }); return aLienzo(L); }), esc); }
+  // íconos chiquitos en pixeles (los dibujos viven en datos/iconos.js)
+  function icono(k, esc, cs) { return reusa(memMini('i' + k + (cs || ''), () => { const f = BB.ICONOS[k], L = new BB.Capa(Math.max(...f.map(x => x.length)), f.length), q = { ...BB.ICONO_COLOR }; if (cs) [q.o, q.b, q.a] = cs.split(','); L.dibujo(0, 0, f, q); return aLienzo(L); }), esc); }
+  // botón con su iconito
+  const botonI = (ico, txt, fn, cls, o) => boton([icono(ico, 2), el('span', '', txt)], fn, (cls || 'bt') + ' ci', o);
 
   /* ---------- ventanas y avisos ---------- */
   function ventana(titulo, ...cont) {
@@ -79,12 +75,14 @@
   let tAviso = null;
   function aviso(txt) { let a = doc.getElementById('aviso'); a.textContent = txt; a.classList.add('ver'); clearTimeout(tAviso); tAviso = setTimeout(() => a.classList.remove('ver'), 2600); }
   // una actividad: 1 a 2 segundos de animación y sigue
+  // si hay una escena a la vista, pasa ahí mismo, en un globito sobre ella; si no, en una ventanita
   let ocupada = false;
-  function haciendo(txt, horas, luego, ico) {
-    if (ocupada) return; ocupada = true;
-    const ms = menosMov.matches ? 1000 : 1300, i = el('i'), v = el('div', 'velo haciendo', el('div', 'ventana mini', el('div', 'salta', icono(ico || 'energia', 5)), el('p', 'grande', txt), horas ? nota(T('horas', { n: horas })) : null, el('div', 'avance', i)));
-    v.setAttribute('role', 'status'); doc.body.append(v); i.style.transition = `width ${ms - 80}ms linear`; requestAnimationFrame(() => requestAnimationFrame(() => { i.style.width = '100%'; }));
-    setTimeout(() => { ocupada = false; v.remove(); luego && luego(); }, root.BB_RAPIDO ? 10 : ms);
+  function haciendo(txt, horas, luego, ico, cls) {
+    if (ocupada) return; ocupada = true; BB.UI.cierraHoja();
+    const ms = menosMov.matches ? 1000 : 1300, i = el('i'), esc = doc.querySelector('#main .escena.libre .encima'), caja = el('div', 'ventana mini', el('div', 'salta', icono(ico || 'energia', 4)), el('p', 'grande', txt, horas ? el('small', '', ' · ' + T('horas', { n: horas })) : null), el('div', 'avance', i));
+    const v = el('div', esc ? 'freno' : 'velo haciendo', esc ? null : caja), g = esc ? el('div', 'hace' + (cls ? ' ' + cls : ''), caja) : null;
+    v.setAttribute('role', 'status'); doc.body.append(v); if (g) { v.setAttribute('aria-label', txt); esc.append(g); } i.style.transition = `width ${ms - 80}ms linear`; requestAnimationFrame(() => requestAnimationFrame(() => { i.style.width = '100%'; }));
+    setTimeout(() => { ocupada = false; v.remove(); if (g) g.remove(); luego && luego(); }, root.BB_RAPIDO ? 10 : ms);
   }
   // el momento de estrenar: la bolsa se abre y aparece puesta
   function momento(titulo, sub, dibujo, bolsa) {
@@ -96,5 +94,5 @@
   function parte(...fs) { return Promise.all(fs.map(f => PARTES[f] = PARTES[f] || new Promise((ok, mal) => { const s = doc.createElement('script'); s.src = 'arte/' + f + '.js'; s.onload = ok; s.onerror = () => { delete PARTES[f]; mal(new Error(f)); }; doc.head.append(s); }))); }
   // ponle un hueco del tamaño justo mientras carga: así la página no brinca
   function cuando(listo, partes, w, al, fn, alListo) { if (listo()) return fn(); const d = el('div', 'hueco'); d.style.width = w + 'px'; d.style.height = al + 'px'; parte(...partes).then(() => { if (d.isConnected) d.replaceWith(fn()); if (alListo) alListo(); }).catch(() => {}); return d; }
-  BB.UI = { el, boton, h, nota, fila, chips, panel, lienzo, figura, escena, cerca, mini, icono, ventana, confirma, aviso, haciendo, momento, cuando, parte, aLienzo, copiaDe, nuevaVuelta, cuadro, CORTE, anima, menosMov, puedeAnimar, get ocupada() { return ocupada; } };
+  BB.UI = { el, boton, botonI, h, nota, fila, chips, panel, lienzo, figura, escena, olvida, cerca, mini, icono, ventana, confirma, aviso, haciendo, momento, cuando, parte, aLienzo, copiaDe, nuevaVuelta, cuadro, CORTE, anima, menosMov, puedeAnimar, get ocupada() { return ocupada; }, set ocupada(v) { ocupada = v; } };
 })(typeof globalThis !== 'undefined' ? globalThis : this);

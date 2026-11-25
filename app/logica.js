@@ -15,12 +15,12 @@
       ap: { ...copia(BB.APARIENCIA), ...copia(ap || {}) }, ropa: {}, closet: [], looks: [],
       propio: { peinados: [], colores: [], luces: ['ninguna'], esmaltes: [], mk: [] },
       unas: { manos: null, pies: null }, mkLook: {}, skincare: { racha: 0, sin: 0, hoy: [], usos: 6 },
-      casa: { tipo: 'estudio', deposito: E.renta.depositoEstudio, pared: 'gris', piso: 'gastado', paredes: ['gris'], pisos: ['gastado'], muebles: {}, tengo: [], suciedad: 10 },
+      casa: { tipo: 'estudio', deposito: E.renta.depositoEstudio, pared: 'gris', piso: 'gastado', paredes: ['gris'], pisos: ['gastado'], muebles: {}, pos: {}, tengo: [], suciedad: 10 },
       raciones: E.inicio.raciones, rico: 0, cuentas: [], deudaVieja: 0, desalojos: 0,
       hab: { diseno: 0, marketing: 0, finanzas: 0, negociacion: 0 }, rep: 0, hechos: 0, sabe: [], ofertas: [], ofertasDia: 0,
       bazar: { dia: 0, piezas: [] }, paquetes: [], ventas: [], mensajes: [], movs: [], fotos: [], notas: [], usosHoy: {},
       tutorial: 1, empresaAvisada: false, ayudaVista: {}, estadisticas: { ganado: 0, gastado: 0, perdido: 0 },
-      ajustes: { idioma: null, letra: 1, ausente: 'auto', animacion: true, reducir: null }, ultimaVez: Date.now(),
+      ajustes: { idioma: null, tema: 'auto', letra: 1, ausente: 'auto', animacion: true, reducir: null }, ultimaVez: Date.now(),
     };
     s.propio.peinados.push(s.ap.pelo); s.propio.colores.push(s.ap.colorPelo); if (!s.propio.luces.includes(s.ap.luces)) s.propio.luces.push(s.ap.luces);
     s.ap.mk = {}; s.ap.manos = s.ap.pies = null;
@@ -272,6 +272,12 @@
     const t = { uid: s.uid++, id: p.id, pagado: p.pagado }; s.casa.tengo.push(t); animo(s, 3 + BB.MUEBLES[p.id].bonito); if (s.casa.tipo === 'estudio') ponerMueble(s, p.id); return { ok: true, mueble: t };
   }
   function ponerMueble(s, id) { const m = BB.MUEBLES[id]; if (s.casa.tipo !== 'estudio') return no('e_no_decorar'); if (!s.casa.tengo.some(t => t.id === id && !s.ventas.some(v => v.uid === t.uid))) return no('e_nada'); s.casa.muebles[m.lugar] = s.casa.muebles[m.lugar] === id ? null : id; return { ok: true, puesto: !!s.casa.muebles[m.lugar] }; }
+  // acomodar: cuánto se movió de su lugar (no cuesta, no gasta tiempo y no cambia el ánimo)
+  function acomodar(s, k, x, y) {
+    const a = BB.ACOMODO[k]; if (!a) return no('e_nada'); if (s.casa.tipo !== 'estudio') return no('e_no_decorar');
+    const p = [clamp(Math.round(x), a.x[0], a.x[1]), clamp(Math.round(y), a.y[0], a.y[1])], pos = { ...s.casa.pos }; if (p[0] || p[1]) pos[k] = p; else delete pos[k];
+    s.casa.pos = pos; return { ok: true, pos: p };
+  }
   function pintar(s, que, id) {
     const d = (que === 'pared' ? BB.PAREDES : BB.PISOS)[id], lista = que === 'pared' ? s.casa.paredes : s.casa.pisos; if (!d) return no('e_nada'); if (s.casa.tipo !== 'estudio') return no('e_no_decorar');
     if (!lista.includes(id)) { if (!puede(s, d.precio)) return no('e_dinero'); if (!cabe(s, 2)) return no('e_tarde'); mueve(s, -d.precio, 'mov_' + que); lista.push(id); reloj(s, 2); animo(s, 5); }
@@ -336,7 +342,7 @@
   function retirar(s, n) { if (!s.ventas.some(x => x.n === n)) return no('e_nada'); s.ventas = s.ventas.filter(x => x.n !== n); return { ok: true }; }
 
   /* ---------- fotos y notas ---------- */
-  function foto(s) { const f = { n: s.uid++, dia: s.dia, hora: s.hora, lugar: s.lugar, noche: esNoche(s), vista: vista(s), casa: { tipo: s.casa.tipo, pared: s.casa.pared, piso: s.casa.piso, muebles: { ...s.casa.muebles } } }; s.fotos.unshift(f); if (s.fotos.length > E.fotosMax) s.fotos.length = E.fotosMax; return { ok: true, foto: f }; }
+  function foto(s) { const f = { n: s.uid++, dia: s.dia, hora: s.hora, lugar: s.lugar, noche: esNoche(s), vista: vista(s), casa: { tipo: s.casa.tipo, pared: s.casa.pared, piso: s.casa.piso, muebles: { ...s.casa.muebles }, pos: copia(s.casa.pos || {}) } }; s.fotos.unshift(f); if (s.fotos.length > E.fotosMax) s.fotos.length = E.fotosMax; return { ok: true, foto: f }; }
   function borraFoto(s, n) { s.fotos = s.fotos.filter(f => f.n !== n); return { ok: true }; }
   function nota(s, texto, n) { const x = s.notas.find(q => q.n === n); if (x) x.texto = texto; else s.notas.unshift({ n: s.uid++, dia: s.dia, texto }); if (!x && !usos(s, 'nota')) { usa(s, 'nota'); animo(s, 3); } return { ok: true }; }
 
@@ -368,5 +374,5 @@
   // números cortos
   function corto(n) { const g = n < 0 ? '-' : '', a = Math.abs(n); if (a < 1000) return g + (a % 1 && a < 100 ? a.toFixed(2) : String(Math.round(a))); const u = ['K', 'M', 'B', 'T']; let i = -1, v = a; while (v >= (i < 0 ? 1000 : 999.5) && i < 3) { v /= 1000; i++; } if (i < 0) { v = a / 1000; i = 0; } return g + (v >= 100 ? Math.round(v) : v.toFixed(1).replace(/\.0$/, '')) + u[i]; }
 
-  BB.L = { VERSION, nueva, copia, azar, mensaje, mueve, puede, pieza, de, actividad, skincare, comer, surtir, ir, dormir, cierraDia, atrasada, cortado, cuentasDelDia, paga, pagaDeuda, desalojo, costoMudanza, mudarse, nivelHab, nivelRep, repVisible, ofertas, energiaTrabajo, calidad, pagaPrevista, trabajar, ponerse, quitarse, guardaLook, poneLook, vista, humor, bazar, comprar, comprarMueble, abrirPaquete, ponerMueble, pintar, bonito, cara, precioPelo, pelo, costoUnas, unas, quitarUnas, idMk, precioMk, tieneMk, comprarMk, ponerMk, guardaMk, poneMkLook, comprarSkincare, ventaRapida, publicar, aceptar, retirar, foto, borraFoto, nota, ausente, avanzaTutorial, corto, semana, esNoche, usos, cabe, topeAnimo, buscarVenta };
+  BB.L = { VERSION, nueva, copia, azar, mensaje, mueve, puede, pieza, de, actividad, skincare, comer, surtir, ir, dormir, cierraDia, atrasada, cortado, cuentasDelDia, paga, pagaDeuda, desalojo, costoMudanza, mudarse, nivelHab, nivelRep, repVisible, ofertas, energiaTrabajo, calidad, pagaPrevista, trabajar, ponerse, quitarse, guardaLook, poneLook, vista, humor, bazar, comprar, comprarMueble, abrirPaquete, ponerMueble, acomodar, pintar, bonito, cara, precioPelo, pelo, costoUnas, unas, quitarUnas, idMk, precioMk, tieneMk, comprarMk, ponerMk, guardaMk, poneMkLook, comprarSkincare, ventaRapida, publicar, aceptar, retirar, foto, borraFoto, nota, ausente, avanzaTutorial, corto, semana, esNoche, usos, cabe, topeAnimo, buscarVenta };
 })(typeof globalThis !== 'undefined' ? globalThis : this);

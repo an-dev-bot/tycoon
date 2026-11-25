@@ -80,6 +80,7 @@
     banquito(L) { pone(L, t => { const c = rampa('#c9a67c'); t.rect(20, 134, 16, 3, c.b); t.rect(22, 137, 2, 12, c.s); t.rect(32, 137, 2, 12, c.s); t.hl(23, 32, 143, c.s); }, rampa('#c9a67c').o); },
     silla(L) { pone(L, t => { const c = rampa('#f9c4d4'); t.elipse(28, 128, 11, 11, c.b); t.rect(17, 128, 23, 8, c.b); t.elipse(28, 138, 12, 4, c.l); t.encima(q => { for (const x of [20, 24, 28, 32, 36]) q.linea(28, 136, x, 118, c.s); q.hl(18, 38, 136, c.s); }); t.rect(27, 141, 2, 7, oro.b); t.rect(21, 148, 14, 2, oro.b); }, rampa('#f9c4d4').o); },
     laptop(L, o) { pone(L, t => { t.rect(18, 96, 22, 14, '#e9d6e4'); t.rect(20, 98, 18, 10, o.noche ? '#cfe0ff' : '#b9cdf0'); t.hl(22, 32, 101, '#ffffff'); t.hl(22, 29, 103, '#ffffff'); t.rect(31, 104, 5, 3, '#f58fb0'); t.rect(15, 110, 28, 2, '#d9c3d4'); }, '#8d7394'); pone(L, t => { t.rect(45, 105, 5, 6, '#fff4ea'); t.px(46, 104, '#8f5f48'); t.px(48, 104, '#8f5f48'); }, MALVA); },
+    laptopSola(L, o) { const t = new Capa(DW, DH), q = new Capa(DW, DH); D.laptop(t, o); for (let y = 90; y < 114; y++) for (let x = 13; x < 44; x++) q.px(x, y, t.get(x, y)); L.sobre(q, o.lx - 14, o.ly - 113); },
     cuadroFrase(L) { pone(L, t => { t.rect(14, 58, 28, 22, CREMA); t.rect(16, 60, 24, 18, '#fbe3ea'); t.dibujo(22, 63, ['b.b.bbb.b.b', 'bbb.b.b.bbb', '.b..bbb..b.'], { b: '#b98096' }); t.dibujo(25, 70, ['.h.h.', 'hhhhh', '.hhh.', '..h..'], { h: '#f58fb0' }); }, MALVA); },
     plantaColgante(L) { const v = rampa('#8fc99c'); L.vl(50, 18, 34, '#c9a66a'); pone(L, t => { t.rect(45, 34, 11, 7, '#fff4ea'); t.hl(45, 55, 40, '#ead9cf'); }, MALVA); for (const [x, y] of [[43, 36], [58, 37], [46, 44], [55, 46], [42, 46], [58, 50], [45, 53], [54, 56]]) pone(L, t => { t.elipse(x, y, 2.6, 2.6, v.b); t.sombrear(1, 0, 1, v.b, v.s); t.px(x - 1, y - 1, v.l); }, v.o); },
     tocador(L, o) { pone(L, t => { const c = rampa('#fffaf5'); t.rect(60, 112, 32, 4, c.b); t.rect(62, 116, 28, 10, c.b); t.rect(63, 126, 3, 12, c.b); t.rect(86, 126, 3, 12, c.b); t.encima(q => { q.vl(76, 117, 125, c.s); q.rect(68, 120, 3, 1, oro.b); q.rect(81, 120, 3, 1, oro.b); q.hl(62, 89, 125, c.s); }); t.rect(62, 78, 28, 30, c.b); t.rect(66, 82, 20, 22, '#dce9f6'); t.encima(q => { q.linea(69, 96, 78, 83, '#f6fbff'); q.linea(72, 100, 82, 86, '#f6fbff'); }); for (const [x, y] of [[63, 80], [63, 88], [63, 96], [63, 104], [87, 80], [87, 88], [87, 96], [87, 104], [71, 79], [79, 79]]) t.rect(x, y, 2, 2, o.noche ? '#fff3b0' : '#ffe9c8'); t.rect(74, 108, 4, 4, c.s); }, MALVA); },
@@ -107,18 +108,41 @@
     pone(L, t => { const c = rampa('#cfe0ee'); t.elipse(96, 168, 34, 9, c.b); t.encima(q => { for (let x = 64; x < 130; x += 5) q.px(x, 166 + (x % 3), c.l); }); t.sombrear(0, 1, 1, c.b, c.s); }, rampa('#cfe0ee').o);
     if (o.noche) void 0;
   }
+  /* ---------- entrada: la puerta, sus ganchos y dónde deja las llaves ---------- */
+  const puertaEn = (L, dx) => { const t = new Capa(DW, DH); D.puerta(t); t.encima(q => { q.rect(75, 80, 2, 2, '#8d7394'); }); L.sobre(t, dx, 0); };
+  const tapetito = (L, x, y, w, c) => pone(L, t => { const q = rampa(c || '#f6c3d2'); t.rect(x, y, w, 10, q.b); t.encima(m => { m.rect(x + 2, y + 2, w - 4, 6, q.l); m.dibujo(x + Math.floor(w / 2) - 3, y + 2, ['.h.h.', 'hhhhh', 'hhhhh', '.hhh.', '..h..'], { h: '#f58fb0' }); }); for (let i = x; i < x + w; i += 2) { t.px(i, y - 1, q.s); t.px(i, y + 10, q.s); } }, rampa(c || '#f6c3d2').o);
+  function entrada(L, o) {
+    puertaEn(L, -20);
+    // perchero con abrigo, bolsa y bufanda
+    pone(L, t => { const w = rampa('#ddb88f'); t.rect(116, 56, 40, 4, w.b); t.hl(116, 155, 59, w.s); for (const x of [121, 135, 149]) { t.rect(x, 60, 2, 3, oro.b); t.px(x, 60, oro.l); } }, rampa('#ddb88f').o);
+    pone(L, t => { const c = rampa('#cbb7ee'); t.poli([[117, 66], [120, 63], [124, 63], [127, 66], [129, 104], [115, 104]], c.b); t.sombrear(1, 0, 2, c.b, c.s); t.encima(q => { q.vl(122, 66, 103, c.s); q.px(120, 76, oro.b); q.px(120, 84, oro.b); q.px(120, 92, oro.b); q.hl(116, 119, 88, c.s); q.hl(125, 128, 88, c.s); }); }, rampa('#cbb7ee').o);
+    pone(L, t => { const c = rampa('#f6b7a6'); t.linea(134, 63, 131, 78, c.s); t.linea(138, 63, 141, 78, c.s); t.rect(130, 78, 14, 12, c.b); t.sombrear(1, 0, 2, c.b, c.s); t.encima(q => { q.hl(130, 143, 79, c.l); q.rect(135, 82, 3, 3, oro.b); }); }, rampa('#f6b7a6').o);
+    pone(L, t => { const c = rampa('#fffaf5'); t.rect(147, 63, 5, 30, c.b); t.rect(151, 64, 3, 22, c.b); t.sombrear(1, 0, 1, c.b, c.s); t.encima(q => { for (let y = 70; y < 92; y += 6) q.hl(147, 153, y, '#f9b9cb'); }); for (const x of [147, 149, 151]) t.px(x, 93, c.s); }, rampa('#fffaf5').o);
+    // espejito, zapatera con las llaves y una plantita
+    pone(L, t => { t.rect(8, 60, 22, 26, oro.b); t.rect(10, 62, 18, 22, '#dce9f6'); t.sombrear(1, 0, 1, oro.b, oro.s); t.encima(q => { q.linea(13, 78, 22, 64, '#f6fbff'); q.linea(16, 81, 25, 67, '#f6fbff'); }); }, '#b58f5a');
+    pone(L, t => { const c = rampa('#fff4ea'); t.rect(4, 114, 32, 24, c.b); t.rect(2, 111, 36, 3, c.l); t.sombrear(1, 0, 1, c.b, c.s); t.encima(q => { q.hl(5, 34, 125, c.s); q.rect(6, 116, 28, 8, '#e9d8cf'); q.rect(6, 127, 28, 8, '#e9d8cf'); for (const [x, y, k] of [[8, 121, '#f58fb0'], [20, 121, '#4a4257'], [8, 132, '#fffaf5'], [20, 132, '#b9a3ea']]) { q.rect(x, y, 5, 3, k); q.rect(x + 6, y, 5, 3, k); } }); }, MALVA);
+    pone(L, t => { const v = rampa('#8fc99c'); t.rect(7, 105, 7, 6, '#f4a9bd'); t.elipse(8.5, 101, 3, 4, v.b); t.elipse(13, 102, 2.6, 3.4, v.b); t.sombrear(1, 0, 1, v.b, v.s); }, rampa('#8fc99c').o);
+    pone(L, t => { t.elipse(27, 109.5, 6, 1.8, '#f7cfd8'); t.px(25, 108, oro.b); t.px(26, 108, oro.b); t.px(28, 108, oro.l); }, rampa('#f7cfd8').o);
+    pone(L, t => { const c = o.noche ? '#fff3b0' : '#fff1d2'; t.perfil(52, 61, [[52, 36], [61, 34]], [[52, 40], [61, 42]], c); t.rect(37, 61, 2, 5, oro.b); }, '#c9a66a');
+    tapetito(L, 41, 144, 34);
+  }
+  // la caja de un paquete (la pantalla la pone encima de la escena)
+  function paquete() { const L = new Capa(24, 22), c = rampa('#dcb78b'); L.rect(2, 8, 20, 12, c.b); L.rect(1, 5, 22, 4, c.l); L.sombrear(1, 0, 3, c.b, c.s); L.encima(q => { q.rect(10, 5, 4, 15, '#f58fb0'); q.vl(13, 5, 19, '#d96f93'); q.hl(2, 21, 9, c.s); }); L.dibujo(6, 1, ['.oo......oo.', 'oaao....oaao', 'oooookkooooo', '.oo.okko.oo.'], { o: '#f58fb0', a: '#ffd9e4', k: '#d96f93' }); L.contorno('#8f6a48'); return L; }
   /* ---------- cuando pierde su depa ---------- */
-  function compartido(L) {
+  function compartido(L, o) {
     pone(L, t => { const c = rampa('#9aa0ab'); t.rect(96, 60, 3, 80, c.b); t.rect(154, 60, 3, 80, c.b); t.rect(96, 82, 61, 4, c.b); t.rect(96, 124, 61, 4, c.b); t.vl(102, 86, 124, c.s); for (let y = 92; y < 124; y += 8) t.hl(98, 104, y, c.s); }, '#5f6672');
     for (const [y, c] of [[74, '#c9c3b8'], [116, '#b8c3c9']]) pone(L, t => { const q = rampa(c); t.rect(99, y, 55, 8, q.b); t.rect(140, y - 4, 13, 5, '#eeeae6'); t.encima(m => { for (let x = 101; x < 138; x += 5) m.vl(x, y, y + 7, q.s); }); }, '#6c6878');
-    pone(L, t => { const c = rampa('#c9a67c'); t.rect(8, 116, 24, 22, c.b); t.rect(36, 124, 18, 14, c.b); t.encima(q => { q.vl(19, 116, 138, c.s); q.vl(44, 124, 138, c.s); }); }, rampa('#c9a67c').o);
+    puertaEn(L, -60);
+    pone(L, t => { const c = rampa('#c9a67c'); t.rect(31, 118, 26, 20, c.b); t.encima(q => { q.vl(43, 118, 138, c.s); q.vl(45, 118, 138, c.s); q.hl(31, 56, 119, c.l); }); }, rampa('#c9a67c').o);
+    D.laptopSola(L, { noche: o.noche, lx: 29, ly: 118 });
     pone(L, t => { t.rect(58, 88, 16, 50, '#a3a9b3'); t.rect(60, 92, 12, 2, '#878d98'); t.rect(60, 96, 12, 2, '#878d98'); t.rect(70, 110, 2, 5, '#6c7280'); }, '#5f6672');
     for (const [x, y, w, h] of [[14, 20, 16, 9], [120, 24, 22, 8], [84, 100, 8, 14]]) for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) if (Math.hypot((i - w / 2) / w * 2, (j - h / 2) / h * 2) < 1 && trama(i, j) > .4) L.px(x + i, y + j, '#d2cbc8');
   }
-  function sofa(L) {
+  function sofa(L, o) {
     pone(L, t => { const c = rampa('#cfc5b4'); t.rect(16, 92, 128, 26, c.b); t.rect(8, 102, 14, 36, c.b); t.rect(138, 102, 14, 36, c.b); t.rect(20, 116, 120, 20, c.l); t.sombrear(0, 1, 1, c.b, c.s); t.encima(q => { q.vl(60, 94, 134, c.s); q.vl(100, 94, 134, c.s); q.hl(20, 140, 116, c.s); }); t.rect(14, 138, 4, 4, '#8f5f48'); t.rect(142, 138, 4, 4, '#8f5f48'); }, rampa('#cfc5b4').o);
     pone(L, t => { const c = rampa('#b7a3c9'); t.perfil(112, 136, () => 22, y => 86 + (y > 130 ? -2 : 0), c.b); t.encima(q => { for (let y = 114; y < 136; y += 5) q.hl(22, 86, y, c.s); }); }, rampa('#b7a3c9').o);
     pone(L, t => { const c = rampa('#ffffff'); t.elipse(126, 110, 11, 6, c.b); t.sombrear(0, 1, 1, c.b, c.s); }, MALVA);
+    D.laptopSola(L, { noche: o.noche, lx: 30, ly: 118 }); tapetito(L, 4, 174, 30, '#cfe0ee');
     pone(L, t => { t.rect(60, 40, 40, 26, '#e9d6b4'); t.rect(63, 43, 34, 20, '#bcd0f4'); t.elipse(80, 60, 14, 6, '#8fb894'); t.elipse(72, 50, 5, 2, '#ffffff'); }, '#a8875a');
     pone(L, t => { t.vl(148, 60, 100, '#8f7a68'); t.perfil(50, 62, [[50, 144], [62, 139]], [[50, 152], [62, 157]], '#fff1d2'); }, '#b89868');
   }
@@ -142,40 +166,81 @@
       return mult(c, d < 20 ? [1, .94, .8] : d < 40 ? [.86, .76, .72] : d < 64 ? [.66, .58, .68] : d < 92 ? [.5, .45, .63] : [.4, .37, .58]);
     });
   }
-  const PUESTOS = { cama: 1, cobija: 1, cojines: 1, buro: 1, lampara: 1 };
+  /* ---------- acomodo: cada mueble se puede mover unos pixeles de su lugar ---------- */
+  const CERO = [0, 0], mueveDe = (o, k) => (o.pos && o.pos[k]) || CERO, suma = (a, b) => [a[0] + b[0], a[1] + b[1]];
+  // grupos: lo que se mueve junto; el número es hasta dónde llega en el piso (lo de más adelante se dibuja encima)
+  const G = {
+    cuarto: { pared: ['cuadro', 'fotos', 'repisa'], piso: [['tapete', 0], ['espejo', 139], ['planta', 139], ['buro', 141], ['cama', 141], ['puff', 177]], hijos: { buro: ['lampara', 'velas'], cama: ['cojines', 'cobija', 'peluche'] }, fin: [] },
+    cocina: { pared: ['frase', 'colgante'], piso: [['tocador', 138], ['escritorio', 139], ['silla', 150]], hijos: {}, fin: ['perfumes'] },
+  };
+  const padreDe = k => Object.keys(G.cuarto.hijos).find(p => G.cuarto.hijos[p].includes(k)) || null;
+  const ordenPiso = (v, o) => G[v].piso.map(([k, b]) => [k, b && b + mueveDe(o, k)[1]]).sort((a, b) => a[1] - b[1]).map(x => x[0]);
+  const lugarDe = (o, k) => { const p = padreDe(k); return p ? suma(mueveDe(o, p), mueveDe(o, k)) : mueveDe(o, k); };
+  // dibuja algo en su lugar de siempre y lo recorre lo que ella lo movió
+  function corrido(L, p, fn) { if (!p[0] && !p[1]) return fn(L); const t = new Capa(DW, DH); fn(t); L.sobre(t, p[0], p[1]); }
+  function dibujaGrupo(L, k, o, P) {
+    const m = o.muebles || {};
+    if (k === 'buro') { if (m.buro) D.buro(L); else if (m.lampara || m.velas) D.cajaBuro(L); }
+    else if (k === 'cama') (D[m.cama] || D.camaBasica)(L, P);
+    else if (k === 'escritorio') { if (m.escritorio) D.escritorio(L); else D.mesaPlegable(L); D.laptop(L, P); }
+    else if (k === 'silla') { if (m.silla) D.silla(L); else D.banquito(L); }
+    else if (m[k] && D[m[k]]) D[m[k]](L, P);
+    for (const q of G.cuarto.hijos[k] || []) if (m[q] && D[m[q]] && q !== o.sin) corrido(L, mueveDe(o, q), t => D[m[q]](t, P));
+  }
+  // qué se puede mover en una vista, con lo que ella tiene puesto (de atrás hacia adelante)
+  function movibles(o) {
+    const g = G[o.vista], m = o.muebles || {}; if (!g) return [];
+    const l = [...g.pared, ...ordenPiso(o.vista, o), ...g.fin].filter(k => m[k] || ['cama', 'escritorio', 'silla'].includes(k) || (k === 'buro' && (m.lampara || m.velas)));
+    for (const p in g.hijos) for (const k of g.hijos[p]) if (m[k]) l.push(k);
+    return l.filter(k => BB.ACOMODO[k]);
+  }
+  // el dibujo de un mueble ya acomodado, recortado, y dónde va: sirve para arrastrarlo
+  function pieza(k, o) {
+    const t = new Capa(DW, DH), p = lugarDe(o, k), P = { noche: false };
+    if (padreDe(k)) D[o.muebles[k]](t, P); else dibujaGrupo(t, k, o, P);
+    let a = DW, b = -1, c = DH, d = -1; for (let y = 0; y < DH; y++) for (let x = 0; x < DW; x++) if (t.hay(x, y)) { a = Math.min(a, x); b = Math.max(b, x); c = Math.min(c, y); d = Math.max(d, y); }
+    return { capa: t.recorte(a, c, b - a + 1, d - c + 1), x: a + p[0], y: c + p[1], w: b - a + 1, h: d - c + 1 };
+  }
+  /* ---------- qué se toca en cada cuarto: k y su caja (x, y, ancho, alto) ---------- */
+  const DX = { cocina: 4, bano: -22, entrada: 4 };      // cuánto se recorre ella en cada cuarto
+  function toca(o) {
+    const tipo = o.tipo || 'estudio', v = tipo === 'estudio' ? (o.vista || 'cuarto') : tipo, l = [], pon = (k, x, y, w, h) => l.push({ k, x, y, w, h });
+    if (v === 'cuarto') { const c = mueveDe(o, 'cama'); pon('cama', 102 + c[0], 96 + c[1], 58, 46); }
+    if (v === 'cocina') { const e = mueveDe(o, 'escritorio'); pon('laptop', 8 + e[0], 88 + e[1], 44, 46); pon('cocina', 98, 74, 62, 64); }
+    if (v === 'bano') pon('regadera', 3, 36, 62, 102);
+    if (v === 'entrada') pon('puerta', 42, 64, 30, 88);
+    if (v === 'compartido') { pon('puerta', 2, 64, 28, 76); pon('laptop', 30, 94, 30, 42); pon('cama', 98, 70, 58, 66); }
+    if (v === 'sofa') { pon('laptop', 22, 92, 40, 34); pon('cama', 112, 94, 36, 42); pon('puerta', 2, 164, 34, 26); }
+    if ((o.suciedad || 0) >= 20) pon('tiradero', ...(v === 'cocina' ? [30, 164, 30, 26] : v === 'bano' ? [106, 142, 32, 22] : [124, 142, 28, 22]));
+    if (o.paquete) pon('paquete', ...(v === 'entrada' ? [46, 164, 24, 22] : [116, 168, 24, 22]));
+    if (o.ella) pon('ella', 72 + (DX[v] || 0), 40, 38, 144);
+    return l;
+  }
   function casa(o) {
     const noche = !!o.noche, m = o.muebles || {}, tipo = o.tipo || 'estudio', vista = tipo === 'estudio' ? (o.vista || 'cuarto') : 'cuarto', P = { noche };
     const T = paredPiso(tipo === 'compartido' ? { pared: 'gris', piso: 'gastado' } : tipo === 'sofa' ? { pared: 'crema', piso: 'claro' } : vista === 'bano' ? { ...o, piso: 'blanco' } : o), luces = [];
-    let V = null; const M = new Capa(DW, DH), hay = k => m[k] && D[m[k]] && D[m[k]](M, P);
-    if (tipo === 'compartido') { compartido(M); luces.push([80, 8, .8]); }
-    else if (tipo === 'sofa') { sofa(M); luces.push([148, 56]); }
+    let V = null; const M = new Capa(DW, DH), va = k => { if (k !== o.sin) corrido(M, mueveDe(o, k), t => dibujaGrupo(t, k, o, P)); }, luz = (k, x, y, f) => { const p = lugarDe(o, k); luces.push([x + p[0], y + p[1], f]); };
+    if (tipo === 'compartido') { compartido(M, P); luces.push([80, 8, .8]); }
+    else if (tipo === 'sofa') { sofa(M, P); luces.push([148, 56]); }
     else if (vista === 'cuarto') {
       const w = U.ventana(noche); V = w.V; T.sobre(w.F); if (!noche) sol(T);
       if (m.cortinas) { const C = U.cortinas(); T.sobre(C); V.quitar(C); }
-      for (const k of ['espejo', 'cuadro', 'fotos', 'repisa', 'planta']) hay(k);
-      if (m.buro) D.buro(M); else if (m.lampara || m.velas) D.cajaBuro(M);
-      for (const k of ['lampara', 'velas']) hay(k);
-      (D[m.cama] || D.camaBasica)(M, P);
-      for (const k of ['cojines', 'cobija', 'peluche', 'tapete', 'puff']) hay(k);
-      if (m.lampara) luces.push([56.5, 99]); else luces.push([80, 6, .85]);
-      if (m.velas) luces.push([64, 103, 2]); if (m.espejo === 'espejoLuz') luces.push([14, 90, 1.4]);
+      G.cuarto.pared.forEach(va); ordenPiso('cuarto', o).forEach(va);
+      if (m.lampara) luz('lampara', 56.5, 99); else luces.push([80, 6, .85]);
+      if (m.velas) luz('velas', 64, 103, 2); if (m.espejo === 'espejoLuz') luz('espejo', 14, 90, 1.4);
     } else if (vista === 'cocina') {
-      D.cocineta(M, P); if (m.tocador) D.tocador(M, P); else D.puerta(M);
-      for (const k of ['frase', 'colgante']) hay(k);
-      if (m.escritorio) D.escritorio(M); else D.mesaPlegable(M);
-      D.laptop(M, P); if (m.silla) D.silla(M); else D.banquito(M);
-      hay('perfumes');
-      luces.push([118, 90, 1.1]); luces.push([29, 102, 1.5]); if (m.tocador) luces.push([76, 92, 1.4]);
-    } else { bano(M, P); luces.push([100, 56, .8]); }
+      D.cocineta(M, P); G.cocina.pared.forEach(va); ordenPiso('cocina', o).forEach(va); G.cocina.fin.forEach(va);
+      luces.push([118, 90, 1.1]); luz('escritorio', 29, 102, 1.5); if (m.tocador) luz('tocador', 76, 92, 1.4);
+    } else if (vista === 'entrada') { entrada(M, P); luces.push([38, 62, .75]); luces.push([80, 6, 1.1]); }
+    else { bano(M, P); luces.push([100, 56, .8]); }
     T.sobre(M);
     tiradero(T, o.suciedad || 0, vista);
     if (noche) penumbra(T, luces);
     if (V) { V.quitar(M); T.sobre(V); }
     if (tipo === 'estudio' && m.luces) U.luces(T, noche, m.luces === 'lucesCalidas');
-    if (noche && vista === 'cuarto' && m.lampara && tipo === 'estudio') T.px(15, 80, T.get(15, 80));
-    if (tipo !== 'estudio' || !m.lampara) { if (vista === 'cuarto' && tipo !== 'sofa') { T.vl(80, 0, 5, '#6c6878'); T.elipse(80.5, 8, 2.6, 3, noche ? '#fff3b0' : '#f3ead0'); } }
+    if (vista === 'entrada' || ((tipo !== 'estudio' || !m.lampara) && vista === 'cuarto' && tipo !== 'sofa')) { T.vl(80, 0, 5, '#6c6878'); T.elipse(80.5, 8, 2.6, 3, noche ? '#fff3b0' : '#f3ead0'); }
     if (o.ella) {
-      const dx = vista === 'cocina' ? 30 : vista === 'bano' ? -22 : 0, oy = 183 - BB.ELLA.SUELO, sx = (noche ? 100 : 92) + dx, sy = 184.5, rx = noche ? 22 : 16, ry = noche ? 2.6 : 2;
+      const dx = DX[vista] || 0, oy = 183 - BB.ELLA.SUELO, sx = (noche ? 100 : 92) + dx, sy = 184.5, rx = noche ? 22 : 16, ry = noche ? 2.6 : 2;
       for (let y = Math.floor(sy - ry); y <= sy + ry; y++) for (let x = Math.floor(sx - rx); x <= sx + rx; x++) if (Math.pow((x + .5 - sx) / rx, 2) + Math.pow((y + .5 - sy) / ry, 2) < 1) T.px(x, y, mix(T.get(x, y), noche ? '#241e4a' : '#8a6a9a', noche ? .45 : .22));
       if (!o.sinElla) { const fig = BB.ELLA.figura({ ...o.ella, sinSombra: true }); T.sobre(noche ? U.iluminada(fig) : fig, 50 + dx, oy); }
     }
@@ -191,5 +256,5 @@
     let a = DW, b = 0, c = DH, d = 0; for (let y = 0; y < DH; y++) for (let x = 0; x < DW; x++) if (L.hay(x, y)) { a = Math.min(a, x); b = Math.max(b, x); c = Math.min(c, y); d = Math.max(d, y); }
     return L.recorte(a, c, b - a + 1, d - c + 1);
   }
-  BB.DEPA = { casa, mini, DIBUJOS: D, DW, DH };
+  BB.DEPA = { casa, mini, toca, movibles, pieza, padreDe, paquete, DX, DIBUJOS: D, DW, DH };
 })(typeof globalThis !== 'undefined' ? globalThis : this);
