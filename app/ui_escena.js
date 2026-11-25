@@ -8,9 +8,19 @@
   // la escala más grande que cabe y deja cada pixel del dibujo en pixeles enteros del teléfono
   function escala(w, h, cw, ch, min) { const d = Math.max(2, root.devicePixelRatio || 1), e = Math.floor(Math.min(cw / w, ch / h) * d + 1e-6) / d; return Math.max(min || 1.5, e); }
   // caja que mide el espacio libre después de entrar a la página y entonces se dibuja
+  // o.crece: el dibujo puede ser más alto (hasta h × crece) para llenar el espacio; pinta recibe la escala y el alto
   function escena(w, h, pinta, o) {
-    const d = el('div', 'escena libre'); d.dataset.mide = '1'; let e0 = 0;
-    d._mide = () => { const e = escala(w, h, d.clientWidth, d.clientHeight, o && o.min); if (e === e0) return; e0 = e; const c = el('div', 'encima', pinta(e)); c.style.width = w * e + 'px'; c.style.height = h * e + 'px'; if (o && o.entra) c.classList.add(o.entra > 0 ? 'entra-d' : 'entra-i'); d.replaceChildren(c); };
+    const d = el('div', 'escena libre'); d.dataset.mide = '1'; let e0 = 0, h0 = 0;
+    d._mide = () => {
+      const e = escala(w, h, d.clientWidth, d.clientHeight, o && o.min), hh = o && o.crece ? Math.max(h, Math.min(Math.round(h * o.crece), Math.floor(d.clientHeight / e + 1e-6))) : h;
+      const nueva = e !== e0 || hh !== h0;
+      if (nueva) { e0 = e; h0 = hh; const c = el('div', 'encima', pinta(e, hh)); c.style.width = w * e + 'px'; c.style.height = hh * e + 'px'; d.replaceChildren(c); }
+      // queda centrada, pero empezando en un pixel entero del teléfono: así ningún pixel del dibujo sale partido
+      // (el navegador acomoda en 64avos de pixel, por eso el ajuste se redondea igual)
+      const c = d.firstElementChild, q = root.devicePixelRatio || 1, entero = v => Math.round((Math.round(v * q) / q - v) * 64) / 64 + 'px';
+      c.style.left = c.style.top = '0px'; const r = c.getBoundingClientRect(); c.style.left = entero(r.left); c.style.top = entero(r.top);
+      if (nueva && o && o.entra) c.classList.add(o.entra > 0 ? 'entra-d' : 'entra-i');
+    };
     if (o && o.pasa) desliza(d, o.pasa);
     return d;
   }

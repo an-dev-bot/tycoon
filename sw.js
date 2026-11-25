@@ -1,5 +1,5 @@
 /* Hecho por herramientas/publicar.mjs: guarda el juego completo para abrirlo sin internet. */
-const VERSION = 'bb-cf26fd0ade';
+const VERSION = 'bb-306ab25949';
 const ARCHIVOS = ["./","index.html","estilo.css","manifest.webmanifest","manifest_navidad.webmanifest","app/tema.js","arte/motor.js","arte/datos.js","arte/opciones.js","arte/ella.js","arte/prendas.js","datos/prendas.js","datos/muebles.js","datos/economia.js","datos/trabajos.js","datos/iconos.js","datos/textos_es.js","datos/textos_en.js","app/logica.js","app/guardado.js","app/i18n.js","app/estado.js","app/ui.js","app/ui_escena.js","app/pantallas.js","app/pantallas_casa.js","app/pantallas_ciudad.js","app/pantallas_telefono.js","app/inicio.js","arte/cerca.js","arte/escenas.js","arte/depa.js","arte/ciudad.js","iconos/icono-192.png","iconos/icono-512.png","iconos/navidad-192.png","iconos/navidad-512.png"];
 self.addEventListener('install', e => e.waitUntil(caches.open(VERSION).then(c => c.addAll(ARCHIVOS.map(u => new Request(u, { cache: 'reload' })))).then(() => self.skipWaiting())));
 self.addEventListener('activate', e => e.waitUntil(caches.keys().then(l => Promise.all(l.filter(k => k.startsWith('bb-') && k !== VERSION).map(k => caches.delete(k)))).then(() => self.clients.claim())));

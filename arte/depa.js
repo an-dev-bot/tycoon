@@ -7,17 +7,18 @@
   const pone = (L, fn, o) => { const t = new Capa(DW, DH); fn(t); if (o) t.contorno(o); L.sobre(t); return t; };
   const oro = rampa('#e6c27a'), CREMA = '#fffaf3';
 
-  function paredPiso(o) {
-    const L = new Capa(DW, DH), w = BB.PAREDES[o.pared] || BB.PAREDES.gris, f = BB.PISOS[o.piso] || BB.PISOS.gastado;
-    L.rect(0, 0, DW, YS, w.c);
-    if (o.pared === 'rosa') { for (let y = 6; y < YS - 6; y += 8) for (let x = 4 + ((y / 8) & 1) * 4; x < DW; x += 8) L.px(x, y, w.t); }
-    else if (o.pared === 'gris') { for (const [x, y, l] of [[92, 20, 9], [98, 24, 5], [14, 48, 7], [140, 110, 8], [120, 60, 4]]) L.hl(x, x + l, y, w.t); L.linea(96, 60, 99, 70, w.t); L.linea(99, 70, 97, 78, w.t); }
-    else for (let x = 8; x < DW; x += 12) L.vl(x, 0, YS - 6, w.t);
-    L.rect(0, YS - 5, DW, 5, CREMA); L.hl(0, DW, YS - 6, MALVA); L.hl(0, DW, YS - 1, '#ead9cf');
-    L.rect(0, YS, DW, DH - YS, f.c);
-    for (let y = YS, k = 0; y < DH; y += 7 + k, k++) { L.hl(0, DW, y, f.t); for (let x = (k * 37) % 46 - 10; x < DW; x += 46) L.vl(x, y, y + 6 + k, f.t); }
-    L.hl(0, DW, YS, mix(f.t, '#6a4a5a', .2));
-    if (o.piso === 'gastado') for (const [x, y] of [[20, 150], [66, 160], [120, 148], [140, 176], [40, 182]]) { L.hl(x, x + 5, y, f.t); L.px(x + 2, y + 1, f.t); }
+  // ar y ab: filas de más (pared arriba, piso abajo) para llenar pantallas altas; lo de en medio no cambia
+  function paredPiso(o, ar = 0, ab = 0) {
+    const H = DH + ar + ab, ys = YS + ar, L = new Capa(DW, H), w = BB.PAREDES[o.pared] || BB.PAREDES.gris, f = BB.PISOS[o.piso] || BB.PISOS.gastado;
+    L.rect(0, 0, DW, ys, w.c);
+    if (o.pared === 'rosa') { for (let n = -Math.floor((ar + 6) / 8), y = ar + 6 + n * 8; y < ys - 6; y += 8, n++) for (let x = 4 + (n & 1) * 4; x < DW; x += 8) L.px(x, y, w.t); }
+    else if (o.pared === 'gris') { for (const [x, y, l] of [[92, 20, 9], [98, 24, 5], [14, 48, 7], [140, 110, 8], [120, 60, 4]]) L.hl(x, x + l, ar + y, w.t); L.linea(96, ar + 60, 99, ar + 70, w.t); L.linea(99, ar + 70, 97, ar + 78, w.t); }
+    else for (let x = 8; x < DW; x += 12) L.vl(x, 0, ys - 6, w.t);
+    L.rect(0, ys - 5, DW, 5, CREMA); L.hl(0, DW, ys - 6, MALVA); L.hl(0, DW, ys - 1, '#ead9cf');
+    L.rect(0, ys, DW, H - ys, f.c);
+    for (let y = ys, k = 0; y < H; y += 7 + k, k++) { L.hl(0, DW, y, f.t); for (let x = (k * 37) % 46 - 10; x < DW; x += 46) L.vl(x, y, y + 6 + k, f.t); }
+    L.hl(0, DW, ys, mix(f.t, '#6a4a5a', .2));
+    if (o.piso === 'gastado') for (const [x, y] of [[20, 150], [66, 160], [120, 148], [140, 176], [40, 182]]) { L.hl(x, x + 5, ar + y, f.t); L.px(x + 2, ar + y + 1, f.t); }
     return L;
   }
   const sol = L => { const s = new Capa(DW, DH); s.poli([[40, YS + 3], [84, YS + 3], [70, YS + 26], [16, YS + 26]], 1); for (let i = 0; i < s.d.length; i++) if (s.d[i]) L.d[i] = mix(L.d[i], '#fff6dc', .35); };
@@ -216,9 +217,12 @@
     if (o.ella) pon('ella', 72 + (DX[v] || 0), 40, 38, 144);
     return l;
   }
+  // o.arriba y o.abajo: filas de más de pared y de piso. Todo lo demás se dibuja donde siempre y solo baja o.arriba
+  // filas; lo que cuelga del techo (las lucecitas y el foco) sigue colgando del techo de verdad.
   function casa(o) {
-    const noche = !!o.noche, m = o.muebles || {}, tipo = o.tipo || 'estudio', vista = tipo === 'estudio' ? (o.vista || 'cuarto') : 'cuarto', P = { noche };
-    const T = paredPiso(tipo === 'compartido' ? { pared: 'gris', piso: 'gastado' } : tipo === 'sofa' ? { pared: 'crema', piso: 'claro' } : vista === 'bano' ? { ...o, piso: 'blanco' } : o), luces = [];
+    const noche = !!o.noche, m = o.muebles || {}, tipo = o.tipo || 'estudio', vista = tipo === 'estudio' ? (o.vista || 'cuarto') : 'cuarto', P = { noche }, ar = Math.max(0, o.arriba | 0), ab = Math.max(0, o.abajo | 0);
+    const fondo = tipo === 'compartido' ? { pared: 'gris', piso: 'gastado' } : tipo === 'sofa' ? { pared: 'crema', piso: 'claro' } : vista === 'bano' ? { ...o, piso: 'blanco' } : o, luces = [];
+    let T = paredPiso(fondo);
     let V = null; const M = new Capa(DW, DH), va = k => { if (k !== o.sin) corrido(M, mueveDe(o, k), t => dibujaGrupo(t, k, o, P)); }, luz = (k, x, y, f) => { const p = lugarDe(o, k); luces.push([x + p[0], y + p[1], f]); };
     if (tipo === 'compartido') { compartido(M, P); luces.push([80, 8, .8]); }
     else if (tipo === 'sofa') { sofa(M, P); luces.push([148, 56]); }
@@ -235,12 +239,13 @@
     else { bano(M, P); luces.push([100, 56, .8]); }
     T.sobre(M);
     tiradero(T, o.suciedad || 0, vista);
+    if (ar || ab) { const alta = paredPiso(fondo, ar, ab); alta.sobre(T, 0, ar); T = alta; for (const l of luces) l[1] += ar; }
     if (noche) penumbra(T, luces);
-    if (V) { V.quitar(M); T.sobre(V); }
+    if (V) { V.quitar(M); T.sobre(V, 0, ar); }
     if (tipo === 'estudio' && m.luces) U.luces(T, noche, m.luces === 'lucesCalidas');
-    if (vista === 'entrada' || ((tipo !== 'estudio' || !m.lampara) && vista === 'cuarto' && tipo !== 'sofa')) { T.vl(80, 0, 5, '#6c6878'); T.elipse(80.5, 8, 2.6, 3, noche ? '#fff3b0' : '#f3ead0'); }
+    if (vista === 'entrada' || ((tipo !== 'estudio' || !m.lampara) && vista === 'cuarto' && tipo !== 'sofa')) { T.vl(80, 0, ar + 5, '#6c6878'); T.elipse(80.5, ar + 8, 2.6, 3, noche ? '#fff3b0' : '#f3ead0'); }
     if (o.ella) {
-      const dx = DX[vista] || 0, oy = 183 - BB.ELLA.SUELO, sx = (noche ? 100 : 92) + dx, sy = 184.5, rx = noche ? 22 : 16, ry = noche ? 2.6 : 2;
+      const dx = DX[vista] || 0, oy = ar + 183 - BB.ELLA.SUELO, sx = (noche ? 100 : 92) + dx, sy = ar + 184.5, rx = noche ? 22 : 16, ry = noche ? 2.6 : 2;
       for (let y = Math.floor(sy - ry); y <= sy + ry; y++) for (let x = Math.floor(sx - rx); x <= sx + rx; x++) if (Math.pow((x + .5 - sx) / rx, 2) + Math.pow((y + .5 - sy) / ry, 2) < 1) T.px(x, y, mix(T.get(x, y), noche ? '#241e4a' : '#8a6a9a', noche ? .45 : .22));
       if (!o.sinElla) { const fig = BB.ELLA.figura({ ...o.ella, sinSombra: true }); T.sobre(noche ? U.iluminada(fig) : fig, 50 + dx, oy); }
     }

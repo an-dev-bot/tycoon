@@ -2,7 +2,9 @@
 (function (root) {
   'use strict';
   const BB = root.BB, { T, N, $$ } = BB.I, U = BB.UI, { el, boton, botonI, nota, fila, panel } = U, E = BB.ECO, L = BB.L, P = BB.P, A = BB.app, ui = A.ui;
-  const W = 160, H = 192, CASA = ['cocinar', 'domicilio'];
+  const W = 160, H = 192, CRECE = 1.6, CASA = ['cocinar', 'domicilio'];
+  // en pantallas altas el cuarto crece: las filas de más se reparten entre pared (arriba) y piso (abajo)
+  const reparte = hh => { const x = Math.max(0, hh - H), ar = Math.round(x * .5); return { arriba: ar, abajo: x - ar }; };
   const llegaron = s => s.paquetes.filter(p => p.llega <= s.dia);
   const vistaDe = s => s.casa.tipo === 'estudio' ? ui.vista : s.casa.tipo;
   const sucio = s => { const v = s.casa.suciedad; return v > 70 ? 3 : v > 45 ? 2 : v > 20 ? 1 : 0; };
@@ -42,17 +44,17 @@
   const cosa = (k, s) => k === 'ella' ? T('z_ella', { nombre: s.nombre }) : T('z_' + k);
   function escena(s) {
     const noche = L.esNoche(s), o = datos(s), aqui = s.lugar === 'casa', pk = llegaron(s), varios = s.casa.tipo === 'estudio', entra = ui.desliza; ui.desliza = 0;
-    const pinta = e => {
-      const c = { ...o, noche, ella: aqui, sinElla: true }, r = [U.escena('casa' + JSON.stringify(c), () => BB.DEPA.casa(c), e)];
+    const pinta = (e, hh) => {
+      const c = { ...o, noche, ella: aqui, sinElla: true, ...reparte(hh) }, ar = c.arriba, r = [U.escena('casa' + JSON.stringify(c), () => BB.DEPA.casa(c), e)];
       if (aqui) {
-        const f = U.figura({ ...L.vista(s), sinSombra: true }, e, noche); f.style.left = (50 + (BB.DEPA.DX[o.tipo === 'estudio' ? o.vista : ''] || 0) + U.CORTE[0]) * e + 'px'; f.style.top = (183 - BB.ELLA.SUELO) * e + 'px';
-        const zonas = BB.DEPA.toca({ ...o, ella: true, paquete: pk.length > 0 }), caja = zonas.find(z => z.k === 'paquete'); r.push(f);
+        const f = U.figura({ ...L.vista(s), sinSombra: true }, e, noche); f.style.left = (50 + (BB.DEPA.DX[o.tipo === 'estudio' ? o.vista : ''] || 0) + U.CORTE[0]) * e + 'px'; f.style.top = (ar + 183 - BB.ELLA.SUELO) * e + 'px';
+        const zonas = BB.DEPA.toca({ ...o, ella: true, paquete: pk.length > 0 }).map(z => ({ ...z, y: z.y + ar })), caja = zonas.find(z => z.k === 'paquete'); r.push(f);
         if (caja) { const x = U.escena('paquete', () => BB.DEPA.paquete(), e); x.classList.add('cosa'); x.style.left = caja.x * e + 'px'; x.style.top = caja.y * e + 'px'; r.push(x); }
-        for (const z of zonas) r.push(U.toca(z, e, W, H, { ico: TOCA[z.k][0], nombre: cosa(z.k, s), fn: TOCA[z.k][1], cls: z.k === 'ella' ? 'sobre-ella' : '' }));
+        for (const z of zonas) r.push(U.toca(z, e, W, hh, { ico: TOCA[z.k][0], nombre: cosa(z.k, s), fn: TOCA[z.k][1], cls: z.k === 'ella' ? 'sobre-ella' : '' }));
       }
       return r;
     };
-    return BB.DEPA ? U.escena2(W, H, pinta, { pasa: varios ? pasa : null, entra }) : P.con('depa', 320, 384, () => { setTimeout(() => A.dibuja()); return el('div', 'hueco'); });
+    return BB.DEPA ? U.escena2(W, H, pinta, { pasa: varios ? pasa : null, entra, crece: CRECE }) : P.con('depa', 320, 384, () => { setTimeout(() => A.dibuja()); return el('div', 'hueco'); });
   }
   // cambiar de cuarto: al final vuelve a empezar
   const pasa = P.pasaCuarto = d => { const l = Object.keys(BB.VISTAS), i = (l.indexOf(ui.vista) + d + l.length) % l.length; ui.vista = l[i]; ui.desliza = d; ui.decoSel = null; A.dibuja(); };
@@ -75,20 +77,21 @@
     const o = { ...datos(s), suciedad: 0, noche: false }, tab = ui.decoTab, acc = (k, t) => U.accion(k, T(t), '', () => { ui.decoTab = k; A.dibuja(); }, { on: tab === k, k: 'd' + k });
     const cab = U.barraAcc(acc('muebles', 'deco_muebles'), acc('pared', 'deco_pared'), acc('piso', 'deco_piso'), U.accion('listo', T('ok'), '', () => { ui.decorar = false; ui.decoSel = null; A.dibuja(true); }, { k: 'dlisto', cls: 'fuerte' }));
     const ent = ui.desliza; ui.desliza = 0;
-    const cuadro = BB.DEPA ? U.escena2(W, H, e => [U.escena('casa' + JSON.stringify(o), () => BB.DEPA.casa(o), e), ...(tab === 'muebles' ? BB.DEPA.movibles(o).map(k => agarra(k, o, e, s)) : [])], { entra: ent }) : P.con('depa', 320, 384, () => { setTimeout(() => A.dibuja()); return el('div', 'hueco'); });
+    const cuadro = BB.DEPA ? U.escena2(W, H, (e, hh) => { const c = { ...o, ...reparte(hh) }; return [U.escena('casa' + JSON.stringify(c), () => BB.DEPA.casa(c), e), ...(tab === 'muebles' ? BB.DEPA.movibles(c).map(k => agarra(k, c, e, s, hh)) : [])]; }, { entra: ent, crece: CRECE }) : P.con('depa', 320, 384, () => { setTimeout(() => A.dibuja()); return el('div', 'hueco'); });
     return el('div', 'hoja cuadro decorando', cab, cuadro, ...(tab === 'muebles' ? charola(s, o) : pinturas(s, tab)));
   }
   const nombreDe = (k, s) => s.casa.muebles[k] ? N(BB.MUEBLES[s.casa.muebles[k]]) : N(BB.LUGARES_MUEBLE[k]);
   const suPos = (s, k) => s.casa.pos[k] || [0, 0];
   // un mueble que se agarra: se arrastra con el dedo, o se mueve con las flechas del teclado
-  function agarra(k, o, e, s) {
-    const q = BB.DEPA.pieza(k, o), b = U.toca({ ...q, k: 'm' + k }, e, W, H, { nombre: T('deco_mover', { cosa: nombreDe(k, s) }), fn: () => { if (ui.decoSel !== k) { ui.decoSel = k; A.dibuja(); } }, cls: 'agarra' + (ui.decoSel === k ? ' on' : '') }), a = BB.ACOMODO[k];
+  // o trae arriba (las filas de más de pared): la pieza se dibuja y se toca esas filas más abajo
+  function agarra(k, o, e, s, hh) {
+    const q = BB.DEPA.pieza(k, o), ar = o.arriba, b = U.toca({ ...q, y: q.y + ar, k: 'm' + k }, e, W, hh, { nombre: T('deco_mover', { cosa: nombreDe(k, s) }), fn: () => { if (ui.decoSel !== k) { ui.decoSel = k; A.dibuja(); } }, cls: 'agarra' + (ui.decoSel === k ? ' on' : '') }), a = BB.ACOMODO[k];
     b.dataset.k = 'mv' + k; let id = null, x0, y0, p0, flota = null, mov = false, fin = null;
     const corta = (v, r) => Math.max(r[0], Math.min(r[1], v));
     b.addEventListener('pointerdown', ev => { if (!ev.isPrimary || U.ocupada) return; id = ev.pointerId; x0 = ev.clientX; y0 = ev.clientY; p0 = suPos(s, k); mov = false; fin = p0; try { b.setPointerCapture(id); } catch (x) { /* ya se fue el dedo */ } });
     b.addEventListener('pointermove', ev => {
       if (ev.pointerId !== id) return; const dx = (ev.clientX - x0) / e, dy = (ev.clientY - y0) / e;
-      if (!mov) { if (Math.hypot(ev.clientX - x0, ev.clientY - y0) < 6) return; mov = true; const caja = b.parentElement, fondo = caja.querySelector('canvas.px'), sin = BB.DEPA.casa({ ...o, sin: k }); sin.alCanvas(fondo); flota = U.lienzo(q.capa, e); flota.classList.add('cosa', 'flota'); flota.style.left = q.x * e + 'px'; flota.style.top = q.y * e + 'px'; fondo.after(flota); caja.classList.add('moviendo'); }
+      if (!mov) { if (Math.hypot(ev.clientX - x0, ev.clientY - y0) < 6) return; mov = true; const caja = b.parentElement, fondo = caja.querySelector('canvas.px'), sin = BB.DEPA.casa({ ...o, sin: k }); sin.alCanvas(fondo); flota = U.lienzo(q.capa, e); flota.classList.add('cosa', 'flota'); flota.style.left = q.x * e + 'px'; flota.style.top = (q.y + ar) * e + 'px'; fondo.after(flota); caja.classList.add('moviendo'); }
       fin = [corta(Math.round(p0[0] + dx), a.x), corta(Math.round(p0[1] + dy), a.y)]; const tx = (fin[0] - p0[0]) * e, ty = (fin[1] - p0[1]) * e; flota.style.transform = b.style.transform = `translate(${tx}px,${ty}px)`;
     });
     const suelta = ev => { if (ev.pointerId !== id) return; id = null; if (!mov) return; ui.decoSel = k; U.olvida('casa' + JSON.stringify(o)); P.hace(L.acomodar(s, k, fin[0], fin[1])); };
